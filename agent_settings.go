@@ -41,12 +41,12 @@ func (a *Agent) Reuse() *Agent {
 // InsecureSkipVerify controls whether the Agent verifies the server
 // certificate chain and host name.
 func (a *Agent) InsecureSkipVerify() *Agent {
-	if a.HostClient.TLSConfig == nil {
+	if a.Client.TLSConfig == nil {
 		/* #nosec G402 */
-		a.HostClient.TLSConfig = &tls.Config{InsecureSkipVerify: true} // #nosec G402
+		a.Client.TLSConfig = &tls.Config{InsecureSkipVerify: true} // #nosec G402
 	} else {
 		/* #nosec G402 */
-		a.HostClient.TLSConfig.InsecureSkipVerify = true
+		a.Client.TLSConfig.InsecureSkipVerify = true
 	}
 
 	return a
@@ -54,7 +54,7 @@ func (a *Agent) InsecureSkipVerify() *Agent {
 
 // TLSConfig sets tls config.
 func (a *Agent) TLSConfig(config *tls.Config) *Agent {
-	a.HostClient.TLSConfig = config
+	a.Client.TLSConfig = config
 
 	return a
 }
@@ -109,7 +109,7 @@ func (a *Agent) Dest(dest []byte) *Agent {
 //
 // By default, will use isIdempotent function from fasthttp
 func (a *Agent) RetryIf(retryIf fasthttp.RetryIfFunc) *Agent {
-	a.HostClient.RetryIf = retryIf
+	a.Client.RetryIf = retryIf
 	return a
 }
 
@@ -158,16 +158,16 @@ func (a *Agent) bytes() (code int, body []byte, errs []error) {
 	}()
 
 	if a.timeout > 0 {
-		if err := a.HostClient.DoTimeout(req, resp, a.timeout); err != nil {
+		if err := a.Client.DoTimeout(req, resp, a.timeout); err != nil {
 			errs = append(errs, err)
 			return
 		}
 	} else if a.maxRedirectsCount > 0 && (string(req.Header.Method()) == MethodGet || string(req.Header.Method()) == MethodHead) {
-		if err := a.HostClient.DoRedirects(req, resp, a.maxRedirectsCount); err != nil {
+		if err := a.Client.DoRedirects(req, resp, a.maxRedirectsCount); err != nil {
 			errs = append(errs, err)
 			return
 		}
-	} else if err := a.HostClient.Do(req, resp); err != nil {
+	} else if err := a.Client.Do(req, resp); err != nil {
 		errs = append(errs, err)
 	}
 
@@ -217,7 +217,7 @@ func (a *Agent) release() {
 }
 
 func (a *Agent) reset() {
-	a.HostClient = nil
+	a.Client = nil
 	a.req.Reset()
 	a.resp = nil
 	a.dest = nil

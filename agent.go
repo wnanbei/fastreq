@@ -1,8 +1,6 @@
 package fastreq
 
 import (
-	"bytes"
-	"fmt"
 	"io"
 	"net"
 	"strconv"
@@ -14,53 +12,41 @@ import (
 )
 
 type Agent struct {
+	*fasthttp.Client
+
 	Name                     string
 	NoDefaultUserAgentHeader bool
-	*fasthttp.HostClient
-	req               *Request
-	resp              *Response
-	dest              []byte
-	args              *Args
-	timeout           time.Duration
-	errs              []error
-	formFiles         []*FormFile
-	debugWriter       io.Writer
-	mw                multipartWriter
-	jsonEncoder       utils.JSONMarshal
-	jsonDecoder       utils.JSONUnmarshal
-	maxRedirectsCount int
-	boundary          string
-	reuse             bool
-	parsed            bool
+	req                      *Request
+	resp                     *Response
+	dest                     []byte
+	args                     *Args
+	timeout                  time.Duration
+	errs                     []error
+	formFiles                []*FormFile
+	debugWriter              io.Writer
+	mw                       multipartWriter
+	jsonEncoder              utils.JSONMarshal
+	jsonDecoder              utils.JSONUnmarshal
+	maxRedirectsCount        int
+	boundary                 string
+	reuse                    bool
+	parsed                   bool
 }
 
-// Parse initializes URI and HostClient.
 func (a *Agent) Parse() error {
 	if a.parsed {
 		return nil
 	}
 	a.parsed = true
 
-	uri := a.req.URI()
-
-	isTLS := false
-	scheme := uri.Scheme()
-	if bytes.Equal(scheme, strHTTPS) {
-		isTLS = true
-	} else if !bytes.Equal(scheme, strHTTP) {
-		return fmt.Errorf("unsupported protocol %q. http and https are supported", scheme)
-	}
-
 	name := a.Name
 	if name == "" && !a.NoDefaultUserAgentHeader {
 		name = defaultUserAgent
 	}
 
-	a.HostClient = &fasthttp.HostClient{
-		Addr:                     addMissingPort(string(uri.Host()), isTLS),
+	a.Client = &fasthttp.Client{
 		Name:                     name,
 		NoDefaultUserAgentHeader: a.NoDefaultUserAgentHeader,
-		IsTLS:                    isTLS,
 	}
 
 	return nil
