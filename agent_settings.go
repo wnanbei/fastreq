@@ -242,8 +242,7 @@ func (a *Agent) reset() {
 }
 
 var (
-	clientPool sync.Pool
-	agentPool  = sync.Pool{
+	agentPool = sync.Pool{
 		New: func() interface{} {
 			return &Agent{req: &Request{}}
 		},
@@ -252,32 +251,6 @@ var (
 	argsPool     sync.Pool
 	formFilePool sync.Pool
 )
-
-// AcquireClient returns an empty Client instance from client pool.
-//
-// The returned Client instance may be passed to ReleaseClient when it is
-// no longer needed. This allows Client recycling, reduces GC pressure
-// and usually improves performance.
-func AcquireClient() *Client {
-	v := clientPool.Get()
-	if v == nil {
-		return &Client{}
-	}
-	return v.(*Client)
-}
-
-// ReleaseClient returns c acquired via AcquireClient to client pool.
-//
-// It is forbidden accessing req and/or its' members after returning
-// it to client pool.
-func ReleaseClient(c *Client) {
-	c.UserAgent = ""
-	c.NoDefaultUserAgentHeader = false
-	c.JSONEncoder = nil
-	c.JSONDecoder = nil
-
-	clientPool.Put(c)
-}
 
 // AcquireAgent returns an empty Agent instance from Agent pool.
 //

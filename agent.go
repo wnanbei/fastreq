@@ -63,3 +63,8 @@ func addMissingPort(addr string, isTLS bool) string {
 	}
 	return net.JoinHostPort(addr, strconv.Itoa(port))
 }
+
+type ReqResp struct {
+	Req  *Request
+	Resp *Response
+}
