@@ -34,38 +34,65 @@ func NewClientFromFastHTTP(client *fasthttp.Client) *ReClient {
 	}
 }
 
-func (c *ReClient) Get(url string) *ReqResp {
-	return c.createAgent(MethodGet, url)
+func (c *ReClient) Get(url string) (*ReResponse, error) {
+	req := NewRequest()
+	req.SetMethod(GET)
+	req.SetRequestURI(url)
+
+	return c.do(req)
 }
 
-func (c *ReClient) Head(url string) *ReqResp {
-	return c.createAgent(MethodHead, url)
+func (c *ReClient) Head(url string) (*ReResponse, error) {
+	req := NewRequest()
+	req.SetMethod(HEAD)
+	req.SetRequestURI(url)
+
+	return c.do(req)
 }
 
-func (c *ReClient) Post(url string) *ReqResp {
-	return c.createAgent(MethodPost, url)
+func (c *ReClient) Post(url string) (*ReResponse, error) {
+	req := NewRequest()
+	req.SetMethod(POST)
+	req.SetRequestURI(url)
+
+	return c.do(req)
 }
 
-func (c *ReClient) Put(url string) *ReqResp {
-	return c.createAgent(MethodPut, url)
+func (c *ReClient) Put(url string) (*ReResponse, error) {
+	req := NewRequest()
+	req.SetMethod(PUT)
+	req.SetRequestURI(url)
+
+	return c.do(req)
 }
 
-func (c *ReClient) Patch(url string) *ReqResp {
-	return c.createAgent(MethodPatch, url)
+func (c *ReClient) Patch(url string) (*ReResponse, error) {
+	req := NewRequest()
+	req.SetMethod(PATCH)
+	req.SetRequestURI(url)
+
+	return c.do(req)
 }
 
-func (c *ReClient) Delete(url string) *ReqResp {
-	return c.createAgent(MethodDelete, url)
+func (c *ReClient) Delete(url string) (*ReResponse, error) {
+	req := NewRequest()
+	req.SetMethod(DELETE)
+	req.SetRequestURI(url)
+
+	return c.do(req)
 }
 
-func (c *ReClient) createAgent(method, url string) *ReqResp {
-	a := AcquireAgent()
-	a.req.Header.SetMethod(method)
-	a.req.SetRequestURI(url)
+func (c *ReClient) Do(req *ReRequest) (*ReResponse, error) {
+	return c.do(req)
+}
 
-	if err := a.Parse(); err != nil {
-		a.errs = append(a.errs, err)
+func (c *ReClient) do(req *ReRequest) (*ReResponse, error) {
+	resp := AcquireResponse()
+
+	if err := c.Client.DoTimeout(req.req, resp, c.Timeout); err != nil {
+		fasthttp.ReleaseResponse(resp)
+		return nil, err
 	}
 
-	return &ReqResp{}
+	return &ReResponse{resp: resp}, nil
 }

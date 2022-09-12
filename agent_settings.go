@@ -162,7 +162,7 @@ func (a *Agent) bytes() (code int, body []byte, errs []error) {
 			errs = append(errs, err)
 			return
 		}
-	} else if a.maxRedirectsCount > 0 && (string(req.Header.Method()) == MethodGet || string(req.Header.Method()) == MethodHead) {
+	} else if a.maxRedirectsCount > 0 && (string(req.Header.Method()) == string(GET) || string(req.Header.Method()) == string(HEAD)) {
 		if err := a.Client.DoRedirects(req, resp, a.maxRedirectsCount); err != nil {
 			errs = append(errs, err)
 			return
