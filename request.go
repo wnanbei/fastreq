@@ -3,6 +3,7 @@ package fastreq
 import (
 	"encoding/json"
 	"encoding/xml"
+	"io"
 	"mime/multipart"
 
 	"github.com/valyala/fasthttp"
@@ -87,6 +88,14 @@ func (r *ReRequest) SetCookie(key, value string) {
 // ================================= Set Header End ===================================
 
 // ================================= Set Body =========================================
+
+func (r *ReRequest) SetBody(body []byte) {
+	r.req.SetBody(body)
+}
+
+func (r *ReRequest) SetBodyStream(bodyStream io.Reader, bodySize int) {
+	r.req.SetBodyStream(bodyStream, bodySize)
+}
 
 func (r *ReRequest) SetJSONBody(v interface{}) error {
 	r.req.Header.SetContentType(MIMEApplicationJSON)
