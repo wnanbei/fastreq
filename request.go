@@ -32,6 +32,10 @@ func ReleaseRequest(r *ReRequest) {
 
 // ================================= Set uri =====================================
 
+func (r *ReRequest) SetRequestURI(url string) {
+	r.req.SetRequestURI(url)
+}
+
 func (r *ReRequest) SetHost(host string) {
 	r.req.URI().SetHost(host)
 }
@@ -48,6 +52,10 @@ func (r *ReRequest) SetBasicAuth(username, password string) {
 // ================================= Set uri End===================================
 
 // ================================= Set Header ===================================
+
+func (r *ReRequest) SetMethod(method HTTPMethod) {
+	r.req.Header.SetMethod(string(method))
+}
 
 func (r *ReRequest) SetUserAgent(userAgent string) {
 	r.req.Header.SetUserAgent(userAgent)
