@@ -29,6 +29,23 @@ func ReleaseRequest(r *ReRequest) {
 	fasthttp.ReleaseRequest(r.req)
 }
 
+// ================================= Set uri ===================================
+
+func (r *ReRequest) SetHost(host string) {
+	r.req.URI().SetHost(host)
+}
+
+func (r *ReRequest) SetQueryString(queryString string) {
+	r.req.URI().SetQueryString(queryString)
+}
+
+func (r *ReRequest) SetBasicAuth(username, password string) {
+	r.req.URI().SetUsername(username)
+	r.req.URI().SetPassword(password)
+}
+
+// ================================================================================
+
 // ================================= Set Header ===================================
 
 func (r *ReRequest) SetUserAgent(userAgent string) {
