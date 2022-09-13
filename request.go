@@ -144,3 +144,10 @@ func (r *ReRequest) SetMultipartForm(f *multipart.Form, boundary string) error {
 }
 
 // ================================= Set Body End ===================================
+
+func (r *ReRequest) Copy() *ReRequest {
+	req := fasthttp.AcquireRequest()
+	r.req.CopyTo(req)
+
+	return NewRequestFromFastHTTP(req)
+}
