@@ -139,7 +139,7 @@ func (c *ReClient) SkipInsecureVerify(isSkip bool) {
 
 // ================================= Client Setting End =================================
 
-func writeDebugInfo(req *Request, resp *Response, w io.Writer) {
+func writeDebugInfo(req *fasthttp.Request, resp *fasthttp.Response, w io.Writer) {
 	msg := fmt.Sprintf("Connected to %s(%s)\r\n\r\n", req.URI().Host(), resp.RemoteAddr())
 	_, _ = w.Write(utils.UnsafeBytes(msg))
 	_, _ = req.WriteTo(w)
