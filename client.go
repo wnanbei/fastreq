@@ -30,9 +30,12 @@ func NewClient() *Client {
 // NewClientFromFastHTTP ...
 func NewClientFromFastHTTP(client *fasthttp.Client) *Client {
 	return &Client{
-		client: client,
+		client:      client,
+		debugWriter: []io.Writer{os.Stdout},
 	}
 }
+
+// ================================= Client Send Request =================================
 
 func (c *Client) Get(url string) (*Response, error) {
 	req := NewRequest()
@@ -103,6 +106,8 @@ func (c *Client) do(req *Request) (*Response, error) {
 
 	return &Response{resp: resp}, nil
 }
+
+// ================================= Client Send Request End ============================
 
 // ================================= Client Settings ====================================
 

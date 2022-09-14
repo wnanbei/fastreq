@@ -29,10 +29,6 @@ func NewRequestFromFastHTTP(req *fasthttp.Request) *Request {
 	}
 }
 
-func ReleaseRequest(r *Request) {
-	fasthttp.ReleaseRequest(r.req)
-}
-
 // ================================= Set uri =====================================
 
 func (r *Request) SetRequestURI(url string) {
@@ -198,4 +194,9 @@ func (r *Request) Copy() *Request {
 	r.req.CopyTo(req)
 
 	return NewRequestFromFastHTTP(req)
+}
+
+func (r *Request) Release() {
+	fasthttp.ReleaseRequest(r.req)
+	r.mw = nil
 }

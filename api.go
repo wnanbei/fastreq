@@ -25,3 +25,13 @@ func Patch(url string) (*Response, error) {
 func Delete(url string) (*Response, error) {
 	return defaultClient.Delete(url)
 }
+
+type Releaser interface {
+	Release()
+}
+
+func Release(releasers ...Releaser) {
+	for _, r := range releasers {
+		r.Release()
+	}
+}

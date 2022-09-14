@@ -25,10 +25,6 @@ func NewResponseFromFastHTTP(resp *fasthttp.Response) *Response {
 	}
 }
 
-func ReleaseResponse(r *Response) {
-	fasthttp.ReleaseResponse(r.resp)
-}
-
 func (r *Response) StatusCode() int {
 	return r.resp.StatusCode()
 }
@@ -75,4 +71,8 @@ func (r *Response) Copy() *Response {
 	r.resp.CopyTo(resp)
 
 	return NewResponseFromFastHTTP(resp)
+}
+
+func (r *Response) Release() {
+	fasthttp.ReleaseResponse(r.resp)
 }
