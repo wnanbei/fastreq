@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/gofiber/fiber/v2/utils"
 	"github.com/valyala/fasthttp"
 )
 
@@ -17,8 +16,6 @@ type ReClient struct {
 	userAgent         string
 	maxRedirectsCount int
 	timeout           time.Duration
-	jsonEncoder       utils.JSONMarshal
-	jsonDecoder       utils.JSONUnmarshal
 	debugWriter       []io.Writer
 }
 
@@ -147,7 +144,7 @@ func (c *ReClient) SkipInsecureVerify(isSkip bool) {
 
 func writeDebugInfo(req *fasthttp.Request, resp *fasthttp.Response, w io.Writer) {
 	msg := fmt.Sprintf("Connected to %s(%s)\r\n\r\n", req.URI().Host(), resp.RemoteAddr())
-	_, _ = w.Write(utils.UnsafeBytes(msg))
+	_, _ = w.Write(unsafeS2B(msg))
 	_, _ = req.WriteTo(w)
 	_, _ = resp.WriteTo(w)
 }
