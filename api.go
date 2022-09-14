@@ -2,28 +2,28 @@ package fastreq
 
 var defaultClient = NewClient()
 
-func Get(url string) (*Response, error) {
-	return defaultClient.Get(url)
+func Get(url string, params *Args) (*Response, error) {
+	return defaultClient.Get(url, params)
 }
 
-func Head(url string) (*Response, error) {
-	return defaultClient.Head(url)
+func Head(url string, params *Args) (*Response, error) {
+	return defaultClient.Head(url, params)
 }
 
-func Post(url string) (*Response, error) {
-	return defaultClient.Post(url)
+func Post(url string, body *Args) (*Response, error) {
+	return defaultClient.Post(url, body)
 }
 
-func Put(url string) (*Response, error) {
-	return defaultClient.Put(url)
+func Put(url string, body *Args) (*Response, error) {
+	return defaultClient.Put(url, body)
 }
 
-func Patch(url string) (*Response, error) {
-	return defaultClient.Patch(url)
+func Patch(url string, params *Args) (*Response, error) {
+	return defaultClient.Patch(url, params)
 }
 
-func Delete(url string) (*Response, error) {
-	return defaultClient.Delete(url)
+func Delete(url string, params *Args) (*Response, error) {
+	return defaultClient.Delete(url, params)
 }
 
 type Releaser interface {

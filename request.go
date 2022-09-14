@@ -128,14 +128,14 @@ func (r *Request) SetBodyXML(v interface{}) error {
 	return nil
 }
 
-func (r *Request) SetBodyForm(args *fasthttp.Args) {
+func (r *Request) SetBodyForm(args *Args) {
 	r.req.Header.SetContentType(MIMEApplicationForm)
 
 	if args != nil {
 		r.req.SetBody(args.QueryString())
 	}
 
-	fasthttp.ReleaseArgs(args)
+	Release(args)
 }
 
 // ================================= Set Body End ===================================

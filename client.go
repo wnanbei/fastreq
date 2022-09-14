@@ -37,50 +37,74 @@ func NewClientFromFastHTTP(client *fasthttp.Client) *Client {
 
 // ================================= Client Send Request =================================
 
-func (c *Client) Get(url string) (*Response, error) {
+func (c *Client) Get(url string, params *Args) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(GET)
 	req.SetRequestURI(url)
 
+	if params != nil {
+		req.SetQueryString(string(params.QueryString()))
+	}
+
 	return c.do(req)
 }
 
-func (c *Client) Head(url string) (*Response, error) {
+func (c *Client) Head(url string, params *Args) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(HEAD)
 	req.SetRequestURI(url)
 
+	if params != nil {
+		req.SetQueryString(string(params.QueryString()))
+	}
+
 	return c.do(req)
 }
 
-func (c *Client) Post(url string) (*Response, error) {
+func (c *Client) Post(url string, body *Args) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(POST)
 	req.SetRequestURI(url)
 
+	if body != nil {
+		req.SetBodyForm(body)
+	}
+
 	return c.do(req)
 }
 
-func (c *Client) Put(url string) (*Response, error) {
+func (c *Client) Put(url string, body *Args) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(PUT)
 	req.SetRequestURI(url)
 
+	if body != nil {
+		req.SetBodyForm(body)
+	}
+
 	return c.do(req)
 }
 
-func (c *Client) Patch(url string) (*Response, error) {
+func (c *Client) Patch(url string, params *Args) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(PATCH)
 	req.SetRequestURI(url)
 
+	if params != nil {
+		req.SetQueryString(string(params.QueryString()))
+	}
+
 	return c.do(req)
 }
 
-func (c *Client) Delete(url string) (*Response, error) {
+func (c *Client) Delete(url string, params *Args) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(DELETE)
 	req.SetRequestURI(url)
+
+	if params != nil {
+		req.SetQueryString(string(params.QueryString()))
+	}
 
 	return c.do(req)
 }
