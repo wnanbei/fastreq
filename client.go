@@ -20,7 +20,6 @@ type ReClient struct {
 	jsonEncoder       utils.JSONMarshal
 	jsonDecoder       utils.JSONUnmarshal
 	debugWriter       []io.Writer
-	mw                multipartWriter
 }
 
 // NewClient ...
@@ -93,6 +92,13 @@ func (c *ReClient) Do(req *ReRequest) (*ReResponse, error) {
 func (c *ReClient) do(req *ReRequest) (*ReResponse, error) {
 	resp := fasthttp.AcquireResponse()
 
+	if req.mw != nil {
+		req.req.Header.SetMultipartFormBoundary(req.mw.Boundary())
+		if err := req.mw.Close(); err != nil {
+			return nil, err
+		}
+	}
+
 	if err := c.client.DoTimeout(req.req, resp, c.timeout); err != nil {
 		fasthttp.ReleaseResponse(resp)
 		return nil, err
@@ -144,12 +150,4 @@ func writeDebugInfo(req *fasthttp.Request, resp *fasthttp.Response, w io.Writer)
 	_, _ = w.Write(utils.UnsafeBytes(msg))
 	_, _ = req.WriteTo(w)
 	_, _ = resp.WriteTo(w)
-}
-
-type multipartWriter interface {
-	Boundary() string
-	SetBoundary(boundary string) error
-	CreateFormFile(fieldname, filename string) (io.Writer, error)
-	WriteField(fieldname, value string) error
-	Close() error
 }

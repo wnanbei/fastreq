@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
+	"path/filepath"
 
 	"github.com/valyala/fasthttp"
 )
@@ -12,17 +14,18 @@ import (
 // ReRequest
 type ReRequest struct {
 	req *fasthttp.Request
+	mw  *multipart.Writer
 }
 
 func NewRequest() *ReRequest {
 	return &ReRequest{
-		fasthttp.AcquireRequest(),
+		req: fasthttp.AcquireRequest(),
 	}
 }
 
 func NewRequestFromFastHTTP(req *fasthttp.Request) *ReRequest {
 	return &ReRequest{
-		req,
+		req: req,
 	}
 }
 
@@ -105,7 +108,7 @@ func (r *ReRequest) SetBodyStream(bodyStream io.Reader, bodySize int) {
 	r.req.SetBodyStream(bodyStream, bodySize)
 }
 
-func (r *ReRequest) SetJSONBody(v interface{}) error {
+func (r *ReRequest) SetBodyJSON(v interface{}) error {
 	r.req.Header.SetContentType(MIMEApplicationJSON)
 
 	body, err := json.Marshal(v)
@@ -117,7 +120,7 @@ func (r *ReRequest) SetJSONBody(v interface{}) error {
 	return nil
 }
 
-func (r *ReRequest) SetXMLBody(v interface{}) error {
+func (r *ReRequest) SetBodyXML(v interface{}) error {
 	r.req.Header.SetContentType(MIMEApplicationXML)
 
 	body, err := xml.Marshal(v)
@@ -129,7 +132,7 @@ func (r *ReRequest) SetXMLBody(v interface{}) error {
 	return nil
 }
 
-func (r *ReRequest) SetFormBody(args *fasthttp.Args) {
+func (r *ReRequest) SetBodyForm(args *fasthttp.Args) {
 	r.req.Header.SetContentType(MIMEApplicationForm)
 
 	if args != nil {
@@ -139,11 +142,52 @@ func (r *ReRequest) SetFormBody(args *fasthttp.Args) {
 	fasthttp.ReleaseArgs(args)
 }
 
-func (r *ReRequest) SetMultipartForm(f *multipart.Form, boundary string) error {
-	return fasthttp.WriteMultipartForm(r.req.BodyWriter(), f, boundary)
+// ================================= Set Body End ===================================
+
+func (r *ReRequest) SetBodyBoundary(boundary string) {
+	if r.mw == nil {
+		r.mw = multipart.NewWriter(r.req.BodyWriter())
+	}
+
+	r.mw.SetBoundary(boundary)
 }
 
-// ================================= Set Body End ===================================
+func (r *ReRequest) AddBodyField(field, value string) error {
+	if r.mw == nil {
+		r.mw = multipart.NewWriter(r.req.BodyWriter())
+	}
+
+	if err := r.mw.WriteField(field, value); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *ReRequest) AddBodyFile(fieldName, filePath string) error {
+	if r.mw == nil {
+		r.mw = multipart.NewWriter(r.req.BodyWriter())
+	}
+
+	if fieldName == "" {
+		// fieldname = "file" + strconv.Itoa(len(a.formFiles)+1) // TODO
+	}
+
+	content, err := ioutil.ReadFile(filepath.Clean(filePath))
+	if err != nil {
+		return err
+	}
+
+	w, err := r.mw.CreateFormFile(fieldName, filepath.Base(filePath))
+	if err != nil {
+		return err
+	}
+	if _, err = w.Write(content); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func (r *ReRequest) Copy() *ReRequest {
 	req := fasthttp.AcquireRequest()

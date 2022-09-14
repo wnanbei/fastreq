@@ -11,8 +11,6 @@ const (
 	DELETE  HTTPMethod = "DELETE"  // RFC 7231, 4.3.5
 	CONNECT HTTPMethod = "CONNECT" // RFC 7231, 4.3.6
 	OPTIONS HTTPMethod = "OPTIONS" // RFC 7231, 4.3.7
-	TRACE   HTTPMethod = "TRACE"   // RFC 7231, 4.3.8
-	USE     HTTPMethod = "USE"
 )
 
 const (
