@@ -11,43 +11,43 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-// ReRequest
-type ReRequest struct {
+// Request
+type Request struct {
 	req *fasthttp.Request
 	mw  *multipart.Writer
 }
 
-func NewRequest() *ReRequest {
-	return &ReRequest{
+func NewRequest() *Request {
+	return &Request{
 		req: fasthttp.AcquireRequest(),
 	}
 }
 
-func NewRequestFromFastHTTP(req *fasthttp.Request) *ReRequest {
-	return &ReRequest{
+func NewRequestFromFastHTTP(req *fasthttp.Request) *Request {
+	return &Request{
 		req: req,
 	}
 }
 
-func ReleaseRequest(r *ReRequest) {
+func ReleaseRequest(r *Request) {
 	fasthttp.ReleaseRequest(r.req)
 }
 
 // ================================= Set uri =====================================
 
-func (r *ReRequest) SetRequestURI(url string) {
+func (r *Request) SetRequestURI(url string) {
 	r.req.SetRequestURI(url)
 }
 
-func (r *ReRequest) SetHost(host string) {
+func (r *Request) SetHost(host string) {
 	r.req.URI().SetHost(host)
 }
 
-func (r *ReRequest) SetQueryString(queryString string) {
+func (r *Request) SetQueryString(queryString string) {
 	r.req.URI().SetQueryString(queryString)
 }
 
-func (r *ReRequest) SetBasicAuth(username, password string) {
+func (r *Request) SetBasicAuth(username, password string) {
 	r.req.URI().SetUsername(username)
 	r.req.URI().SetPassword(password)
 }
@@ -56,43 +56,43 @@ func (r *ReRequest) SetBasicAuth(username, password string) {
 
 // ================================= Set Header ===================================
 
-func (r *ReRequest) SetMethod(method HTTPMethod) {
+func (r *Request) SetMethod(method HTTPMethod) {
 	r.req.Header.SetMethod(string(method))
 }
 
-func (r *ReRequest) SetUserAgent(userAgent string) {
+func (r *Request) SetUserAgent(userAgent string) {
 	r.req.Header.SetUserAgent(userAgent)
 }
 
-func (r *ReRequest) SetReferer(referer string) {
+func (r *Request) SetReferer(referer string) {
 	r.req.Header.SetReferer(referer)
 }
 
-func (r *ReRequest) SetContentType(contentType string) {
+func (r *Request) SetContentType(contentType string) {
 	r.req.Header.SetContentType(contentType)
 }
 
-func (r *ReRequest) SetHeaders(kv ...string) {
+func (r *Request) SetHeaders(kv ...string) {
 	for i := 1; i < len(kv); i += 2 {
 		r.req.Header.Set(kv[i-1], kv[i])
 	}
 }
 
-func (r *ReRequest) SetHeader(k, v string) {
+func (r *Request) SetHeader(k, v string) {
 	r.req.Header.Set(k, v)
 }
 
-func (r *ReRequest) AddHeader(k, v string) {
+func (r *Request) AddHeader(k, v string) {
 	r.req.Header.Add(k, v)
 }
 
-func (r *ReRequest) SetCookies(kv ...string) {
+func (r *Request) SetCookies(kv ...string) {
 	for i := 1; i < len(kv); i += 2 {
 		r.req.Header.SetCookie(kv[i-1], kv[i])
 	}
 }
 
-func (r *ReRequest) SetCookie(key, value string) {
+func (r *Request) SetCookie(key, value string) {
 	r.req.Header.SetCookie(key, value)
 }
 
@@ -100,15 +100,15 @@ func (r *ReRequest) SetCookie(key, value string) {
 
 // ================================= Set Body =========================================
 
-func (r *ReRequest) SetBody(body []byte) {
+func (r *Request) SetBody(body []byte) {
 	r.req.SetBody(body)
 }
 
-func (r *ReRequest) SetBodyStream(bodyStream io.Reader, bodySize int) {
+func (r *Request) SetBodyStream(bodyStream io.Reader, bodySize int) {
 	r.req.SetBodyStream(bodyStream, bodySize)
 }
 
-func (r *ReRequest) SetBodyJSON(v interface{}) error {
+func (r *Request) SetBodyJSON(v interface{}) error {
 	r.req.Header.SetContentType(MIMEApplicationJSON)
 
 	body, err := json.Marshal(v)
@@ -120,7 +120,7 @@ func (r *ReRequest) SetBodyJSON(v interface{}) error {
 	return nil
 }
 
-func (r *ReRequest) SetBodyXML(v interface{}) error {
+func (r *Request) SetBodyXML(v interface{}) error {
 	r.req.Header.SetContentType(MIMEApplicationXML)
 
 	body, err := xml.Marshal(v)
@@ -132,7 +132,7 @@ func (r *ReRequest) SetBodyXML(v interface{}) error {
 	return nil
 }
 
-func (r *ReRequest) SetBodyForm(args *fasthttp.Args) {
+func (r *Request) SetBodyForm(args *fasthttp.Args) {
 	r.req.Header.SetContentType(MIMEApplicationForm)
 
 	if args != nil {
@@ -144,7 +144,7 @@ func (r *ReRequest) SetBodyForm(args *fasthttp.Args) {
 
 // ================================= Set Body End ===================================
 
-func (r *ReRequest) SetBodyBoundary(boundary string) {
+func (r *Request) SetBodyBoundary(boundary string) {
 	if r.mw == nil {
 		r.mw = multipart.NewWriter(r.req.BodyWriter())
 	}
@@ -152,7 +152,7 @@ func (r *ReRequest) SetBodyBoundary(boundary string) {
 	r.mw.SetBoundary(boundary)
 }
 
-func (r *ReRequest) AddBodyField(field, value string) error {
+func (r *Request) AddBodyField(field, value string) error {
 	if r.mw == nil {
 		r.mw = multipart.NewWriter(r.req.BodyWriter())
 	}
@@ -164,7 +164,7 @@ func (r *ReRequest) AddBodyField(field, value string) error {
 	return nil
 }
 
-func (r *ReRequest) AddBodyFile(fieldName, filePath string) error {
+func (r *Request) AddBodyFile(fieldName, filePath string) error {
 	if r.mw == nil {
 		r.mw = multipart.NewWriter(r.req.BodyWriter())
 	}
@@ -189,7 +189,7 @@ func (r *ReRequest) AddBodyFile(fieldName, filePath string) error {
 	return nil
 }
 
-func (r *ReRequest) Copy() *ReRequest {
+func (r *Request) Copy() *Request {
 	req := fasthttp.AcquireRequest()
 	r.req.CopyTo(req)
 

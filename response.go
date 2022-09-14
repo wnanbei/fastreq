@@ -8,58 +8,58 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-// ReResponse ...
-type ReResponse struct {
+// Response ...
+type Response struct {
 	resp *fasthttp.Response
 }
 
-func NewResponse() *ReResponse {
-	return &ReResponse{
+func NewResponse() *Response {
+	return &Response{
 		fasthttp.AcquireResponse(),
 	}
 }
 
-func NewResponseFromFastHTTP(resp *fasthttp.Response) *ReResponse {
-	return &ReResponse{
+func NewResponseFromFastHTTP(resp *fasthttp.Response) *Response {
+	return &Response{
 		resp,
 	}
 }
 
-func ReleaseReResponse(r *ReResponse) {
+func ReleaseResponse(r *Response) {
 	fasthttp.ReleaseResponse(r.resp)
 }
 
-func (r *ReResponse) StatusCode() int {
+func (r *Response) StatusCode() int {
 	return r.resp.StatusCode()
 }
 
-func (r *ReResponse) RemoteAddr() net.Addr {
+func (r *Response) RemoteAddr() net.Addr {
 	return r.resp.RemoteAddr()
 }
 
 // ================================= Get Body ===================================
 
-func (r *ReResponse) Body() []byte {
+func (r *Response) Body() []byte {
 	return r.resp.Body()
 }
 
-func (r *ReResponse) BodyString() string {
+func (r *Response) BodyString() string {
 	return r.resp.String()
 }
 
-func (r *ReResponse) BodyGunzip() ([]byte, error) {
+func (r *Response) BodyGunzip() ([]byte, error) {
 	return r.resp.BodyGunzip()
 }
 
-func (r *ReResponse) BodyUncompressed() ([]byte, error) {
+func (r *Response) BodyUncompressed() ([]byte, error) {
 	return r.resp.BodyUncompressed()
 }
 
-func (r *ReResponse) BodyWriteTo(w io.Writer) error {
+func (r *Response) BodyWriteTo(w io.Writer) error {
 	return r.resp.BodyWriteTo(w)
 }
 
-func (r *ReResponse) Json(v interface{}) error {
+func (r *Response) Json(v interface{}) error {
 	body, err := r.resp.BodyUncompressed()
 	if err != nil {
 		return err
@@ -70,7 +70,7 @@ func (r *ReResponse) Json(v interface{}) error {
 
 // ================================= Get Body End ===============================
 
-func (r *ReResponse) Copy() *ReResponse {
+func (r *Response) Copy() *Response {
 	resp := fasthttp.AcquireResponse()
 	r.resp.CopyTo(resp)
 

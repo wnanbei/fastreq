@@ -37,7 +37,7 @@ func NewClientFromFastHTTP(client *fasthttp.Client) *ReClient {
 	}
 }
 
-func (c *ReClient) Get(url string) (*ReResponse, error) {
+func (c *ReClient) Get(url string) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(GET)
 	req.SetRequestURI(url)
@@ -45,7 +45,7 @@ func (c *ReClient) Get(url string) (*ReResponse, error) {
 	return c.do(req)
 }
 
-func (c *ReClient) Head(url string) (*ReResponse, error) {
+func (c *ReClient) Head(url string) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(HEAD)
 	req.SetRequestURI(url)
@@ -53,7 +53,7 @@ func (c *ReClient) Head(url string) (*ReResponse, error) {
 	return c.do(req)
 }
 
-func (c *ReClient) Post(url string) (*ReResponse, error) {
+func (c *ReClient) Post(url string) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(POST)
 	req.SetRequestURI(url)
@@ -61,7 +61,7 @@ func (c *ReClient) Post(url string) (*ReResponse, error) {
 	return c.do(req)
 }
 
-func (c *ReClient) Put(url string) (*ReResponse, error) {
+func (c *ReClient) Put(url string) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(PUT)
 	req.SetRequestURI(url)
@@ -69,7 +69,7 @@ func (c *ReClient) Put(url string) (*ReResponse, error) {
 	return c.do(req)
 }
 
-func (c *ReClient) Patch(url string) (*ReResponse, error) {
+func (c *ReClient) Patch(url string) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(PATCH)
 	req.SetRequestURI(url)
@@ -77,7 +77,7 @@ func (c *ReClient) Patch(url string) (*ReResponse, error) {
 	return c.do(req)
 }
 
-func (c *ReClient) Delete(url string) (*ReResponse, error) {
+func (c *ReClient) Delete(url string) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(DELETE)
 	req.SetRequestURI(url)
@@ -85,11 +85,11 @@ func (c *ReClient) Delete(url string) (*ReResponse, error) {
 	return c.do(req)
 }
 
-func (c *ReClient) Do(req *ReRequest) (*ReResponse, error) {
+func (c *ReClient) Do(req *Request) (*Response, error) {
 	return c.do(req)
 }
 
-func (c *ReClient) do(req *ReRequest) (*ReResponse, error) {
+func (c *ReClient) do(req *Request) (*Response, error) {
 	resp := fasthttp.AcquireResponse()
 
 	if req.mw != nil {
@@ -104,7 +104,7 @@ func (c *ReClient) do(req *ReRequest) (*ReResponse, error) {
 		return nil, err
 	}
 
-	return &ReResponse{resp: resp}, nil
+	return &Response{resp: resp}, nil
 }
 
 // ================================= Client Settings ====================================
