@@ -12,6 +12,7 @@ func TestGet(t *testing.T) {
 	}
 
 	t.Log(resp.BodyString())
+	Release(resp)
 }
 
 func TestPost(t *testing.T) {
@@ -24,4 +25,5 @@ func TestPost(t *testing.T) {
 	}
 
 	t.Log(resp.BodyString())
+	Release(resp)
 }
