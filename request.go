@@ -144,6 +144,8 @@ func (r *Request) SetBodyForm(args *fasthttp.Args) {
 
 // ================================= Set Body End ===================================
 
+// ============================== Set Multipart Form ================================
+
 func (r *Request) SetBodyBoundary(boundary string) {
 	if r.mw == nil {
 		r.mw = multipart.NewWriter(r.req.BodyWriter())
@@ -188,6 +190,8 @@ func (r *Request) AddBodyFile(fieldName, filePath string) error {
 
 	return nil
 }
+
+// ============================== Set Multipart Form End ============================
 
 func (r *Request) Copy() *Request {
 	req := fasthttp.AcquireRequest()

@@ -10,8 +10,8 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-// ReClient ...
-type ReClient struct {
+// Client ...
+type Client struct {
 	client            *fasthttp.Client
 	userAgent         string
 	maxRedirectsCount int
@@ -20,21 +20,21 @@ type ReClient struct {
 }
 
 // NewClient ...
-func NewClient() *ReClient {
-	return &ReClient{
+func NewClient() *Client {
+	return &Client{
 		client:      &fasthttp.Client{},
 		debugWriter: []io.Writer{os.Stdout},
 	}
 }
 
 // NewClientFromFastHTTP ...
-func NewClientFromFastHTTP(client *fasthttp.Client) *ReClient {
-	return &ReClient{
+func NewClientFromFastHTTP(client *fasthttp.Client) *Client {
+	return &Client{
 		client: client,
 	}
 }
 
-func (c *ReClient) Get(url string) (*Response, error) {
+func (c *Client) Get(url string) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(GET)
 	req.SetRequestURI(url)
@@ -42,7 +42,7 @@ func (c *ReClient) Get(url string) (*Response, error) {
 	return c.do(req)
 }
 
-func (c *ReClient) Head(url string) (*Response, error) {
+func (c *Client) Head(url string) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(HEAD)
 	req.SetRequestURI(url)
@@ -50,7 +50,7 @@ func (c *ReClient) Head(url string) (*Response, error) {
 	return c.do(req)
 }
 
-func (c *ReClient) Post(url string) (*Response, error) {
+func (c *Client) Post(url string) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(POST)
 	req.SetRequestURI(url)
@@ -58,7 +58,7 @@ func (c *ReClient) Post(url string) (*Response, error) {
 	return c.do(req)
 }
 
-func (c *ReClient) Put(url string) (*Response, error) {
+func (c *Client) Put(url string) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(PUT)
 	req.SetRequestURI(url)
@@ -66,7 +66,7 @@ func (c *ReClient) Put(url string) (*Response, error) {
 	return c.do(req)
 }
 
-func (c *ReClient) Patch(url string) (*Response, error) {
+func (c *Client) Patch(url string) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(PATCH)
 	req.SetRequestURI(url)
@@ -74,7 +74,7 @@ func (c *ReClient) Patch(url string) (*Response, error) {
 	return c.do(req)
 }
 
-func (c *ReClient) Delete(url string) (*Response, error) {
+func (c *Client) Delete(url string) (*Response, error) {
 	req := NewRequest()
 	req.SetMethod(DELETE)
 	req.SetRequestURI(url)
@@ -82,11 +82,11 @@ func (c *ReClient) Delete(url string) (*Response, error) {
 	return c.do(req)
 }
 
-func (c *ReClient) Do(req *Request) (*Response, error) {
+func (c *Client) Do(req *Request) (*Response, error) {
 	return c.do(req)
 }
 
-func (c *ReClient) do(req *Request) (*Response, error) {
+func (c *Client) do(req *Request) (*Response, error) {
 	resp := fasthttp.AcquireResponse()
 
 	if req.mw != nil {
@@ -106,31 +106,31 @@ func (c *ReClient) do(req *Request) (*Response, error) {
 
 // ================================= Client Settings ====================================
 
-func (c *ReClient) SetTimeout(timeout time.Duration) {
+func (c *Client) SetTimeout(timeout time.Duration) {
 	c.timeout = timeout
 }
 
-func (c *ReClient) SetUserAgent(userAgent string) {
+func (c *Client) SetUserAgent(userAgent string) {
 	c.userAgent = userAgent
 }
 
-func (c *ReClient) SetDebugWriter(debugWriter ...io.Writer) {
+func (c *Client) SetDebugWriter(debugWriter ...io.Writer) {
 	c.debugWriter = debugWriter
 }
 
-func (c *ReClient) SetTLSConfig(config *tls.Config) {
+func (c *Client) SetTLSConfig(config *tls.Config) {
 	c.client.TLSConfig = config
 }
 
-func (c *ReClient) SetMaxRedirectsCount(count int) {
+func (c *Client) SetMaxRedirectsCount(count int) {
 	c.maxRedirectsCount = count
 }
 
-func (c *ReClient) SetRetryIf(retryIf fasthttp.RetryIfFunc) {
+func (c *Client) SetRetryIf(retryIf fasthttp.RetryIfFunc) {
 	c.client.RetryIf = retryIf
 }
 
-func (c *ReClient) SkipInsecureVerify(isSkip bool) {
+func (c *Client) SkipInsecureVerify(isSkip bool) {
 	if c.client.TLSConfig == nil {
 		/* #nosec G402 */
 		c.client.TLSConfig = &tls.Config{InsecureSkipVerify: isSkip} // #nosec G402
