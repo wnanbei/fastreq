@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/valyala/fasthttp"
+	"github.com/valyala/fasthttp/fasthttpproxy"
 )
 
 // Client ...
@@ -129,6 +130,18 @@ func (c *Client) do(req *Request) (*Response, error) {
 	}
 
 	return &Response{resp: resp}, nil
+}
+
+func (c *Client) SetHTTPProxy(proxy string) {
+	c.client.Dial = fasthttpproxy.FasthttpHTTPDialer(proxy)
+}
+
+func (c *Client) SetSocks5Proxy(proxy string) {
+	c.client.Dial = fasthttpproxy.FasthttpSocksDialer(proxy)
+}
+
+func (c *Client) SetEnvProxy() {
+	c.client.Dial = fasthttpproxy.FasthttpProxyHTTPDialer()
 }
 
 // ================================= Client Send Request End ============================

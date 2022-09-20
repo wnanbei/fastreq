@@ -1,5 +1,7 @@
 package fastreq
 
+import "time"
+
 type HTTPMethod string
 
 const (
@@ -30,3 +32,5 @@ const (
 	MIMEApplicationJSONCharsetUTF8       = "application/json; charset=utf-8"
 	MIMEApplicationJavaScriptCharsetUTF8 = "application/javascript; charset=utf-8"
 )
+
+const defaultTimeout = time.Second * 30

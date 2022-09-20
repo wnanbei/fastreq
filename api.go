@@ -30,6 +30,18 @@ func Do(req *Request) (*Response, error) {
 	return defaultClient.Do(req)
 }
 
+func SetHTTPProxy(proxy string) {
+	defaultClient.SetHTTPProxy(proxy)
+}
+
+func SetSocks5Proxy(proxy string) {
+	defaultClient.SetSocks5Proxy(proxy)
+}
+
+func SetEnvHTTPProxy() {
+	defaultClient.SetEnvHTTPProxy()
+}
+
 type Releaser interface {
 	Release()
 }
