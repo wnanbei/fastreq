@@ -26,6 +26,10 @@ func Delete(url string, params *Args) (*Response, error) {
 	return defaultClient.Delete(url, params)
 }
 
+func Do(req *Request) (*Response, error) {
+	return defaultClient.Do(req)
+}
+
 type Releaser interface {
 	Release()
 }
