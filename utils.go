@@ -58,7 +58,11 @@ const (
 
 const upperhex = "0123456789ABCDEF"
 
-func queryEscape(s []byte, mode encoding) []byte {
+func queryEscape(s []byte) []byte {
+	return escape(s, encodeQueryComponent)
+}
+
+func escape(s []byte, mode encoding) []byte {
 	hexCount := 0
 	for i := 0; i < len(s); i++ {
 		c := s[i]
