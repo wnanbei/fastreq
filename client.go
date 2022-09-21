@@ -18,13 +18,17 @@ type Client struct {
 	maxRedirectsCount int
 	timeout           time.Duration
 	debugWriter       []io.Writer
+	auth              Oauth1
+	reqMiddleware     []RequestMiddleware
+	respMiddleware    []ResponseMiddleware
 }
 
 // NewClient ...
 func NewClient() *Client {
 	return &Client{
-		client:      &fasthttp.Client{},
-		debugWriter: []io.Writer{os.Stdout},
+		client:        &fasthttp.Client{},
+		debugWriter:   []io.Writer{os.Stdout},
+		reqMiddleware: []RequestMiddleware{MiddlewareLog()},
 	}
 }
 
@@ -124,13 +128,27 @@ func (c *Client) do(req *Request) (*Response, error) {
 		}
 	}
 
+	for _, rm := range c.reqMiddleware { // set request middleware
+		rm(req)
+	}
+
 	if err := c.client.DoTimeout(req.req, resp, c.timeout); err != nil {
 		fasthttp.ReleaseResponse(resp)
 		return nil, err
 	}
 
-	return &Response{resp: resp}, nil
+	response := &Response{resp: resp}
+
+	for _, rm := range c.respMiddleware { // set response middleware
+		rm(response)
+	}
+
+	return response, nil
 }
+
+// ================================= Client Send Request End ============================
+
+// ================================= Client Send Proxy ===============================
 
 func (c *Client) SetHTTPProxy(proxy string) {
 	c.client.Dial = fasthttpproxy.FasthttpHTTPDialer(proxy)
@@ -144,7 +162,7 @@ func (c *Client) SetEnvHTTPProxy() {
 	c.client.Dial = fasthttpproxy.FasthttpProxyHTTPDialer()
 }
 
-// ================================= Client Send Request End ============================
+// ================================= Client Send Proxy End ===============================
 
 // ================================= Client Settings ====================================
 
@@ -180,6 +198,10 @@ func (c *Client) SkipInsecureVerify(isSkip bool) {
 		/* #nosec G402 */
 		c.client.TLSConfig.InsecureSkipVerify = isSkip
 	}
+}
+
+func (c *Client) SetOauth1(o *Oauth1) {
+	c.reqMiddleware = append(c.reqMiddleware, MiddlewareOauth1(o))
 }
 
 // ================================= Client Setting End =================================

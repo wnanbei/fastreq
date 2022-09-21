@@ -42,6 +42,10 @@ func SetEnvHTTPProxy() {
 	defaultClient.SetEnvHTTPProxy()
 }
 
+func SetOauth1(o *Oauth1) {
+	defaultClient.SetOauth1(o)
+}
+
 type Releaser interface {
 	Release()
 }

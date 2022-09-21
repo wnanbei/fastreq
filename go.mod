@@ -2,7 +2,10 @@ module github.com/wnanbei/fastreq
 
 go 1.18
 
-require github.com/valyala/fasthttp v1.39.0
+require (
+	github.com/klaidas/go-oauth1 v0.0.0-20190306224042-169193bf805e
+	github.com/valyala/fasthttp v1.39.0
+)
 
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect

@@ -5,7 +5,8 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base64"
-	"net/url"
+	"fmt"
+	"math/rand"
 	"strconv"
 	"time"
 
@@ -26,7 +27,7 @@ func (o Oauth1) GenHeader(req *Request) []byte {
 	args.Add("oauth_consumer_key", o.ConsumerKey)
 	args.Add("oauth_signature_method", "HMAC-SHA1")
 	args.Add("oauth_version", "1.0")
-	args.Add("oauth_nonce", "1.0")
+	args.AddBytesV("oauth_nonce", genNonce())
 	args.Add("oauth_timestamp", strconv.FormatInt(time.Now().Unix(), 10))
 
 	req.req.URI().QueryArgs().VisitAll(func(key, value []byte) {
@@ -44,12 +45,14 @@ func (o Oauth1) signature(req *Request, args *fasthttp.Args) []byte {
 	signatureBase.Grow(len(queryString))
 	signatureBase.Write(req.req.Header.Method())
 	signatureBase.WriteString("&")
-	signatureBase.Write(req.req.URI().Scheme())
-	signatureBase.WriteString("://")
-	signatureBase.Write(req.req.URI().Host())
-	signatureBase.Write(req.req.URI().Path())
+	signatureBase.Write(queryEscape(req.req.URI().Scheme()))
+	signatureBase.Write(queryEscape([]byte("://")))
+	signatureBase.Write(queryEscape(req.req.URI().Host()))
+	signatureBase.Write(queryEscape(req.req.URI().Path()))
 	signatureBase.WriteString("&")
-	signatureBase.WriteString(url.QueryEscape(string(queryString)))
+	signatureBase.Write(queryEscape(queryString))
+
+	fmt.Println(signatureBase.String())
 
 	signatureKey := bytes.Buffer{}
 	signatureKey.Grow(len(o.ConsumerSecret) + len(o.AccessSecret) + 1)
@@ -58,8 +61,9 @@ func (o Oauth1) signature(req *Request, args *fasthttp.Args) []byte {
 	signatureKey.WriteString(o.AccessSecret)
 
 	h := hmac.New(sha1.New, signatureKey.Bytes())
-	signature := h.Sum(signatureBase.Bytes())
-	var encodedSignature []byte
+	h.Write(signatureBase.Bytes())
+	signature := h.Sum(nil)
+	encodedSignature := make([]byte, base64.StdEncoding.EncodedLen(len(signature)))
 	base64.StdEncoding.Encode(encodedSignature, signature)
 	return encodedSignature
 }
@@ -82,4 +86,14 @@ func (o Oauth1) header(req *Request, args *fasthttp.Args, signature []byte) []by
 	header.WriteString(`"`)
 
 	return header.Bytes()
+}
+
+const allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+func genNonce() []byte {
+	b := make([]byte, 48)
+	for i := range b {
+		b[i] = allowed[rand.Intn(len(allowed))]
+	}
+	return b
 }
