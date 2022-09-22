@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 
+	"github.com/tidwall/gjson"
 	"github.com/valyala/fasthttp"
 )
 
@@ -62,6 +63,14 @@ func (r *Response) Json(v interface{}) error {
 	}
 
 	return json.Unmarshal(body, v)
+}
+
+func (r *Response) JsonGet(path string) gjson.Result {
+	return gjson.GetBytes(r.resp.Body(), path)
+}
+
+func (r *Response) JsonGetMany(path ...string) []gjson.Result {
+	return gjson.GetManyBytes(r.resp.Body(), path...)
 }
 
 // ================================= Get Body End ===============================
