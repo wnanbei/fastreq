@@ -5,7 +5,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base64"
-	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
@@ -23,12 +22,12 @@ type Oauth1 struct {
 func (o Oauth1) GenHeader(req *Request) []byte {
 	args := fasthttp.AcquireArgs()
 
-	args.Add("oauth_token", o.AccessToken)
 	args.Add("oauth_consumer_key", o.ConsumerKey)
-	args.Add("oauth_signature_method", "HMAC-SHA1")
-	args.Add("oauth_version", "1.0")
 	args.AddBytesV("oauth_nonce", genNonce())
+	args.Add("oauth_signature_method", "HMAC-SHA1")
 	args.Add("oauth_timestamp", strconv.FormatInt(time.Now().Unix(), 10))
+	args.Add("oauth_token", o.AccessToken)
+	args.Add("oauth_version", "1.0")
 
 	req.req.URI().QueryArgs().VisitAll(func(key, value []byte) {
 		args.AddBytesKV(key, value)
@@ -39,7 +38,7 @@ func (o Oauth1) GenHeader(req *Request) []byte {
 }
 
 func (o Oauth1) signature(req *Request, args *fasthttp.Args) []byte {
-	queryString := args.QueryString() //TODO %20
+	queryString := args.QueryString()
 
 	signatureBase := bytes.Buffer{}
 	signatureBase.Grow(len(queryString))
@@ -51,8 +50,6 @@ func (o Oauth1) signature(req *Request, args *fasthttp.Args) []byte {
 	signatureBase.Write(queryEscape(req.req.URI().Path()))
 	signatureBase.WriteString("&")
 	signatureBase.Write(queryEscape(queryString))
-
-	fmt.Println(signatureBase.String())
 
 	signatureKey := bytes.Buffer{}
 	signatureKey.Grow(len(o.ConsumerSecret) + len(o.AccessSecret) + 1)
