@@ -38,6 +38,7 @@ func (o Oauth1) GenHeader(req *Request) []byte {
 }
 
 func (o Oauth1) signature(req *Request, args *fasthttp.Args) []byte {
+	args.Sort(bytes.Compare)
 	queryString := args.QueryString()
 
 	signatureBase := bytes.Buffer{}
