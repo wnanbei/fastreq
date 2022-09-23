@@ -43,9 +43,7 @@ func NewClientFromFastHTTP(client *fasthttp.Client) *Client {
 // ================================= Client Send Request =================================
 
 func (c *Client) Get(url string, params *Args) (*Response, error) {
-	req := NewRequest()
-	req.SetMethod(GET)
-	req.SetRequestURI(url)
+	req := NewRequest(GET, url)
 
 	if params != nil {
 		req.SetQueryString(string(params.QueryString()))
@@ -55,9 +53,7 @@ func (c *Client) Get(url string, params *Args) (*Response, error) {
 }
 
 func (c *Client) Head(url string, params *Args) (*Response, error) {
-	req := NewRequest()
-	req.SetMethod(HEAD)
-	req.SetRequestURI(url)
+	req := NewRequest(HEAD, url)
 
 	if params != nil {
 		req.SetQueryString(string(params.QueryString()))
@@ -67,9 +63,7 @@ func (c *Client) Head(url string, params *Args) (*Response, error) {
 }
 
 func (c *Client) Post(url string, body *Args) (*Response, error) {
-	req := NewRequest()
-	req.SetMethod(POST)
-	req.SetRequestURI(url)
+	req := NewRequest(POST, url)
 
 	if body != nil {
 		req.SetBodyForm(body)
@@ -79,9 +73,7 @@ func (c *Client) Post(url string, body *Args) (*Response, error) {
 }
 
 func (c *Client) Put(url string, body *Args) (*Response, error) {
-	req := NewRequest()
-	req.SetMethod(PUT)
-	req.SetRequestURI(url)
+	req := NewRequest(PUT, url)
 
 	if body != nil {
 		req.SetBodyForm(body)
@@ -91,9 +83,7 @@ func (c *Client) Put(url string, body *Args) (*Response, error) {
 }
 
 func (c *Client) Patch(url string, params *Args) (*Response, error) {
-	req := NewRequest()
-	req.SetMethod(PATCH)
-	req.SetRequestURI(url)
+	req := NewRequest(PATCH, url)
 
 	if params != nil {
 		req.SetQueryString(string(params.QueryString()))
@@ -103,9 +93,7 @@ func (c *Client) Patch(url string, params *Args) (*Response, error) {
 }
 
 func (c *Client) Delete(url string, params *Args) (*Response, error) {
-	req := NewRequest()
-	req.SetMethod(DELETE)
-	req.SetRequestURI(url)
+	req := NewRequest(DELETE, url)
 
 	if params != nil {
 		req.SetQueryString(string(params.QueryString()))
