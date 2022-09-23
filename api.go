@@ -30,6 +30,10 @@ func Do(req *Request) (*Response, error) {
 	return defaultClient.Do(req)
 }
 
+func DownloadFile(req *Request, path, filename string) error {
+	return defaultClient.DownloadFile(req, path, filename)
+}
+
 func SetHTTPProxy(proxy string) {
 	defaultClient.SetHTTPProxy(proxy)
 }

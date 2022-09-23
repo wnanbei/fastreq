@@ -102,6 +102,21 @@ func (c *Client) Delete(url string, params *Args) (*Response, error) {
 	return c.do(req)
 }
 
+func (c *Client) DownloadFile(req *Request, path, filename string) error {
+	resp, err := c.do(req)
+	if err != nil {
+		return err
+	}
+
+	if err := resp.SaveToFile(path, filename); err != nil {
+		return err
+	}
+
+	resp.Release()
+
+	return nil
+}
+
 func (c *Client) Do(req *Request) (*Response, error) {
 	return c.do(req)
 }
