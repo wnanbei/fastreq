@@ -11,16 +11,17 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-// Request
+// Request ...
 type Request struct {
 	req *fasthttp.Request
 	mw  *multipart.Writer
 }
 
-func NewRequest() *Request {
-	return &Request{
-		req: fasthttp.AcquireRequest(),
-	}
+func NewRequest(method HTTPMethod, url string) *Request {
+	req := &Request{req: fasthttp.AcquireRequest()}
+	req.SetMethod(method)
+	req.SetRequestURI(url)
+	return req
 }
 
 func NewRequestFromFastHTTP(req *fasthttp.Request) *Request {
