@@ -46,7 +46,7 @@ func (c *Client) Get(url string, params *Args) (*Response, error) {
 	req := NewRequest(GET, url)
 
 	if params != nil {
-		req.SetQueryString(string(params.QueryString()))
+		req.SetQueryParams(params)
 	}
 
 	return c.do(req)
@@ -56,7 +56,7 @@ func (c *Client) Head(url string, params *Args) (*Response, error) {
 	req := NewRequest(HEAD, url)
 
 	if params != nil {
-		req.SetQueryString(string(params.QueryString()))
+		req.SetQueryParams(params)
 	}
 
 	return c.do(req)
@@ -86,7 +86,7 @@ func (c *Client) Patch(url string, params *Args) (*Response, error) {
 	req := NewRequest(PATCH, url)
 
 	if params != nil {
-		req.SetQueryString(string(params.QueryString()))
+		req.SetQueryParams(params)
 	}
 
 	return c.do(req)
@@ -96,7 +96,7 @@ func (c *Client) Delete(url string, params *Args) (*Response, error) {
 	req := NewRequest(DELETE, url)
 
 	if params != nil {
-		req.SetQueryString(string(params.QueryString()))
+		req.SetQueryParams(params)
 	}
 
 	return c.do(req)

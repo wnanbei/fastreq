@@ -44,6 +44,10 @@ func (r *Request) SetQueryString(queryString string) {
 	r.req.URI().SetQueryString(queryString)
 }
 
+func (r *Request) SetQueryParams(args *Args) {
+	r.req.URI().SetQueryStringBytes(args.QueryString())
+}
+
 func (r *Request) SetBasicAuth(username, password string) {
 	r.req.URI().SetUsername(username)
 	r.req.URI().SetPassword(password)
