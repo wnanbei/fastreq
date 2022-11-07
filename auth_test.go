@@ -23,5 +23,5 @@ func TestOauth1(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Log(resp.BodyString())
+	t.Log(resp.String())
 }

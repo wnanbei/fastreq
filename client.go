@@ -128,13 +128,12 @@ func (c *Client) do(req *Request) (*Response, error) {
 		}
 	}
 
-	resp := fasthttp.AcquireResponse()
-	if err := c.client.DoTimeout(req.Request, resp, c.timeout); err != nil {
-		fasthttp.ReleaseResponse(resp)
+	ctx := Ctx{Request: req, client: c}
+	if err := c.middlewares[0](&ctx); err != nil {
 		return nil, err
 	}
 
-	return response, nil
+	return ctx.Response, nil
 }
 
 func do(ctx *Ctx) error {

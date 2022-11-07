@@ -11,7 +11,7 @@ func TestGet(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Log(resp.BodyString())
+	t.Log(resp.Response.String())
 	Release(resp)
 }
 
@@ -24,7 +24,7 @@ func TestPost(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Log(resp.BodyString())
+	t.Log(resp.String())
 	Release(resp)
 }
 
@@ -36,7 +36,7 @@ func TestSetHTTPProxy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Log(resp.BodyString())
+	t.Log(resp.String())
 	Release(resp)
 }
 
@@ -48,7 +48,7 @@ func TestSetSocks5Proxy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Log(resp.BodyString())
+	t.Log(resp.String())
 	Release(resp)
 }
 
@@ -60,7 +60,7 @@ func TestSetEnvProxy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Log(resp.BodyString())
+	t.Log(resp.String())
 	Release(resp)
 }
 

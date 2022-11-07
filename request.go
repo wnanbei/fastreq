@@ -31,10 +31,6 @@ func NewRequestFromFastHTTP(req *fasthttp.Request) *Request {
 
 // ================================= Set uri =====================================
 
-func (r *Request) SetRequestURI(url string) {
-	r.SetRequestURI(url)
-}
-
 func (r *Request) SetHost(host string) {
 	r.URI().SetHost(host)
 }
