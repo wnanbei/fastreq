@@ -2,19 +2,19 @@ package fastreq
 
 import "fmt"
 
-type RequestMiddleware func(req *Request)
+type Middleware func(ctx *Ctx) error
 
-type ResponseMiddleware func(resp *Response)
-
-func MiddlewareOauth1(o *Oauth1) RequestMiddleware {
-	return func(req *Request) {
-		auth := o.GenHeader(req)
-		req.req.Header.SetBytesV("Authorization", auth)
+func MiddlewareOauth1(o *Oauth1) Middleware {
+	return func(ctx *Ctx) error {
+		auth := o.GenHeader(ctx.Request)
+		ctx.Request.Header.SetBytesV("Authorization", auth)
+		return nil
 	}
 }
 
-func MiddlewareLog() RequestMiddleware {
-	return func(req *Request) {
-		fmt.Println(req.req.Header.RawHeaders())
+func MiddlewareLog() Middleware {
+	return func(ctx *Ctx) error {
+		fmt.Printf("%s\n", req.req.URI().FullURI())
+		fmt.Printf("%s\n", req.req.Header.RawHeaders())
 	}
 }

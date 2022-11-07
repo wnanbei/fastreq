@@ -29,7 +29,7 @@ func (o Oauth1) GenHeader(req *Request) []byte {
 	args.Add("oauth_token", o.AccessToken)
 	args.Add("oauth_version", "1.0")
 
-	req.req.URI().QueryArgs().VisitAll(func(key, value []byte) {
+	req.URI().QueryArgs().VisitAll(func(key, value []byte) {
 		args.AddBytesKV(key, value)
 	})
 
@@ -43,12 +43,12 @@ func (o Oauth1) signature(req *Request, args *fasthttp.Args) []byte {
 
 	signatureBase := bytes.Buffer{}
 	signatureBase.Grow(len(queryString))
-	signatureBase.Write(req.req.Header.Method())
+	signatureBase.Write(req.Header.Method())
 	signatureBase.WriteString("&")
-	signatureBase.Write(queryEscape(req.req.URI().Scheme()))
+	signatureBase.Write(queryEscape(req.URI().Scheme()))
 	signatureBase.Write(queryEscape([]byte("://")))
-	signatureBase.Write(queryEscape(req.req.URI().Host()))
-	signatureBase.Write(queryEscape(req.req.URI().Path()))
+	signatureBase.Write(queryEscape(req.URI().Host()))
+	signatureBase.Write(queryEscape(req.URI().Path()))
 	signatureBase.WriteString("&")
 	signatureBase.Write(queryEscape(queryString))
 

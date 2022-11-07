@@ -19,16 +19,15 @@ type Client struct {
 	timeout           time.Duration
 	debugWriter       []io.Writer
 	auth              Oauth1
-	reqMiddleware     []RequestMiddleware
-	respMiddleware    []ResponseMiddleware
+	middlewares       []Middleware
 }
 
 // NewClient ...
 func NewClient() *Client {
 	return &Client{
-		client:        &fasthttp.Client{},
-		debugWriter:   []io.Writer{os.Stdout},
-		reqMiddleware: []RequestMiddleware{MiddlewareLog()},
+		client:      &fasthttp.Client{},
+		debugWriter: []io.Writer{os.Stdout},
+		middlewares: []Middleware{MiddlewareLog()},
 	}
 }
 
@@ -122,31 +121,31 @@ func (c *Client) Do(req *Request) (*Response, error) {
 }
 
 func (c *Client) do(req *Request) (*Response, error) {
-	resp := fasthttp.AcquireResponse()
-
 	if req.mw != nil {
-		req.req.Header.SetMultipartFormBoundary(req.mw.Boundary())
+		req.Header.SetMultipartFormBoundary(req.mw.Boundary())
 		if err := req.mw.Close(); err != nil {
 			return nil, err
 		}
 	}
 
-	for _, rm := range c.reqMiddleware { // set request middleware
-		rm(req)
-	}
-
-	if err := c.client.DoTimeout(req.req, resp, c.timeout); err != nil {
+	resp := fasthttp.AcquireResponse()
+	if err := c.client.DoTimeout(req.Request, resp, c.timeout); err != nil {
 		fasthttp.ReleaseResponse(resp)
 		return nil, err
 	}
 
-	response := &Response{resp: resp}
+	return response, nil
+}
 
-	for _, rm := range c.respMiddleware { // set response middleware
-		rm(response)
+func do(ctx *Ctx) error {
+	resp := fasthttp.AcquireResponse()
+	if err := ctx.fastClient().DoTimeout(ctx.fastRequest(), resp, ctx.client.timeout); err != nil {
+		fasthttp.ReleaseResponse(resp)
+		return err
 	}
 
-	return response, nil
+	ctx.Response = NewResponseFromFastHTTP(resp)
+	return nil
 }
 
 // ================================= Client Send Request End ============================
@@ -204,7 +203,7 @@ func (c *Client) SkipInsecureVerify(isSkip bool) {
 }
 
 func (c *Client) SetOauth1(o *Oauth1) {
-	c.reqMiddleware = append(c.reqMiddleware, MiddlewareOauth1(o))
+	c.middlewares = append(c.middlewares, MiddlewareOauth1(o))
 }
 
 // ================================= Client Setting End =================================
