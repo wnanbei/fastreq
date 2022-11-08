@@ -1,6 +1,9 @@
 package fastreq
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 type Middleware func(ctx *Ctx) error
 
@@ -12,15 +15,28 @@ func MiddlewareOauth1(o *Oauth1) Middleware {
 	}
 }
 
-func MiddlewareLog() Middleware {
+func MiddlewareLogger() Middleware {
 	return func(ctx *Ctx) error {
-		fmt.Printf("%s\n", ctx.Request.URI().FullURI())
+		fmt.Printf(
+			"REQUEST: %s %s %s\n%s",
+			time.Now().Format(time.RFC3339),
+			ctx.Request.Header.Method(),
+			ctx.Request.URI().FullURI(),
+			ctx.Request.String(),
+		)
 
 		if err := ctx.Next(); err != nil {
 			return err
 		}
 
-		fmt.Printf("%d\n", ctx.Response.StatusCode())
+		fmt.Printf(
+			"RESPONSE: %s %s %s %d\n%s",
+			time.Now().Format(time.RFC3339),
+			ctx.Request.Header.Method(),
+			ctx.Request.URI().FullURI(),
+			ctx.Response.StatusCode(),
+			ctx.Response.String(),
+		)
 
 		return nil
 	}
