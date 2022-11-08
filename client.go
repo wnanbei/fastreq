@@ -26,7 +26,7 @@ func NewClient() *Client {
 	return &Client{
 		Client:      &fasthttp.Client{},
 		debugWriter: []io.Writer{os.Stdout},
-		middlewares: []Middleware{MiddlewareLogger()},
+		middlewares: []Middleware{},
 	}
 }
 
