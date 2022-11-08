@@ -2,7 +2,6 @@ package fastreq
 
 import (
 	"crypto/tls"
-	"fmt"
 	"io"
 	"os"
 	"time"
@@ -13,7 +12,7 @@ import (
 
 // Client ...
 type Client struct {
-	client            *fasthttp.Client
+	*fasthttp.Client
 	userAgent         string
 	maxRedirectsCount int
 	timeout           time.Duration
@@ -25,7 +24,7 @@ type Client struct {
 // NewClient ...
 func NewClient() *Client {
 	return &Client{
-		client:      &fasthttp.Client{},
+		Client:      &fasthttp.Client{},
 		debugWriter: []io.Writer{os.Stdout},
 		middlewares: []Middleware{MiddlewareLogger()},
 	}
@@ -34,7 +33,7 @@ func NewClient() *Client {
 // NewClientFromFastHTTP ...
 func NewClientFromFastHTTP(client *fasthttp.Client) *Client {
 	return &Client{
-		client:      client,
+		Client:      client,
 		debugWriter: []io.Writer{os.Stdout},
 	}
 }
@@ -121,13 +120,6 @@ func (c *Client) Do(req *Request) (*Response, error) {
 }
 
 func (c *Client) do(req *Request) (*Response, error) {
-	if req.mw != nil {
-		req.Header.SetMultipartFormBoundary(req.mw.Boundary())
-		if err := req.mw.Close(); err != nil {
-			return nil, err
-		}
-	}
-
 	ctx := Ctx{Request: req, client: c}
 	if err := c.middlewares[0](&ctx); err != nil {
 		return nil, err
@@ -137,8 +129,15 @@ func (c *Client) do(req *Request) (*Response, error) {
 }
 
 func do(ctx *Ctx) error {
+	if ctx.Request.mw != nil {
+		ctx.Request.Header.SetMultipartFormBoundary(ctx.Request.mw.Boundary())
+		if err := ctx.Request.mw.Close(); err != nil {
+			return err
+		}
+	}
+
 	resp := fasthttp.AcquireResponse()
-	if err := ctx.fastClient().DoTimeout(ctx.fastRequest(), resp, ctx.client.timeout); err != nil {
+	if err := ctx.client.DoTimeout(ctx.fastRequest(), resp, ctx.client.timeout); err != nil {
 		fasthttp.ReleaseResponse(resp)
 		return err
 	}
@@ -152,15 +151,15 @@ func do(ctx *Ctx) error {
 // ================================= Client Send Proxy ===============================
 
 func (c *Client) SetHTTPProxy(proxy string) {
-	c.client.Dial = fasthttpproxy.FasthttpHTTPDialer(proxy)
+	c.Dial = fasthttpproxy.FasthttpHTTPDialer(proxy)
 }
 
 func (c *Client) SetSocks5Proxy(proxy string) {
-	c.client.Dial = fasthttpproxy.FasthttpSocksDialer(proxy)
+	c.Dial = fasthttpproxy.FasthttpSocksDialer(proxy)
 }
 
 func (c *Client) SetEnvHTTPProxy() {
-	c.client.Dial = fasthttpproxy.FasthttpProxyHTTPDialer()
+	c.Dial = fasthttpproxy.FasthttpProxyHTTPDialer()
 }
 
 // ================================= Client Send Proxy End ===============================
@@ -180,7 +179,7 @@ func (c *Client) SetDebugWriter(debugWriter ...io.Writer) {
 }
 
 func (c *Client) SetTLSConfig(config *tls.Config) {
-	c.client.TLSConfig = config
+	c.TLSConfig = config
 }
 
 func (c *Client) SetMaxRedirectsCount(count int) {
@@ -188,28 +187,19 @@ func (c *Client) SetMaxRedirectsCount(count int) {
 }
 
 func (c *Client) SetRetryIf(retryIf fasthttp.RetryIfFunc) {
-	c.client.RetryIf = retryIf
+	c.RetryIf = retryIf
 }
 
 func (c *Client) SkipInsecureVerify(isSkip bool) {
-	if c.client.TLSConfig == nil {
+	if c.TLSConfig == nil {
 		/* #nosec G402 */
-		c.client.TLSConfig = &tls.Config{InsecureSkipVerify: isSkip} // #nosec G402
+		c.TLSConfig = &tls.Config{InsecureSkipVerify: isSkip} // #nosec G402
 	} else {
 		/* #nosec G402 */
-		c.client.TLSConfig.InsecureSkipVerify = isSkip
+		c.TLSConfig.InsecureSkipVerify = isSkip
 	}
 }
 
 func (c *Client) SetOauth1(o *Oauth1) {
 	c.middlewares = append(c.middlewares, MiddlewareOauth1(o))
-}
-
-// ================================= Client Setting End =================================
-
-func writeDebugInfo(req *fasthttp.Request, resp *fasthttp.Response, w io.Writer) {
-	msg := fmt.Sprintf("Connected to %s(%s)\r\n\r\n", req.URI().Host(), resp.RemoteAddr())
-	_, _ = w.Write(unsafeS2B(msg))
-	_, _ = req.WriteTo(w)
-	_, _ = resp.WriteTo(w)
 }

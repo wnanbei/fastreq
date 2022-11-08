@@ -29,7 +29,7 @@ func (c *Ctx) Next() (err error) {
 }
 
 func (c *Ctx) fastClient() *fasthttp.Client {
-	return c.client.client
+	return c.client.Client
 }
 
 func (c *Ctx) fastRequest() *fasthttp.Request {
