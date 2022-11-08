@@ -40,7 +40,7 @@ func NewClientFromFastHTTP(client *fasthttp.Client) *Client {
 
 // ================================= Client Send Request =================================
 
-func (c *Client) Get(url string, params *Args) (*Response, error) {
+func (c *Client) Get(url string, params *Args) (*Ctx, error) {
 	req := NewRequest(GET, url)
 
 	if params != nil {
@@ -50,7 +50,7 @@ func (c *Client) Get(url string, params *Args) (*Response, error) {
 	return c.do(req)
 }
 
-func (c *Client) Head(url string, params *Args) (*Response, error) {
+func (c *Client) Head(url string, params *Args) (*Ctx, error) {
 	req := NewRequest(HEAD, url)
 
 	if params != nil {
@@ -60,7 +60,7 @@ func (c *Client) Head(url string, params *Args) (*Response, error) {
 	return c.do(req)
 }
 
-func (c *Client) Post(url string, body *Args) (*Response, error) {
+func (c *Client) Post(url string, body *Args) (*Ctx, error) {
 	req := NewRequest(POST, url)
 
 	if body != nil {
@@ -70,7 +70,7 @@ func (c *Client) Post(url string, body *Args) (*Response, error) {
 	return c.do(req)
 }
 
-func (c *Client) Put(url string, body *Args) (*Response, error) {
+func (c *Client) Put(url string, body *Args) (*Ctx, error) {
 	req := NewRequest(PUT, url)
 
 	if body != nil {
@@ -80,7 +80,7 @@ func (c *Client) Put(url string, body *Args) (*Response, error) {
 	return c.do(req)
 }
 
-func (c *Client) Patch(url string, params *Args) (*Response, error) {
+func (c *Client) Patch(url string, params *Args) (*Ctx, error) {
 	req := NewRequest(PATCH, url)
 
 	if params != nil {
@@ -90,7 +90,7 @@ func (c *Client) Patch(url string, params *Args) (*Response, error) {
 	return c.do(req)
 }
 
-func (c *Client) Delete(url string, params *Args) (*Response, error) {
+func (c *Client) Delete(url string, params *Args) (*Ctx, error) {
 	req := NewRequest(DELETE, url)
 
 	if params != nil {
@@ -101,31 +101,34 @@ func (c *Client) Delete(url string, params *Args) (*Response, error) {
 }
 
 func (c *Client) DownloadFile(req *Request, path, filename string) error {
-	resp, err := c.do(req)
+	ctx, err := c.do(req)
 	if err != nil {
 		return err
 	}
 
-	if err := resp.SaveToFile(path, filename); err != nil {
+	if err := ctx.Response.SaveToFile(path, filename); err != nil {
 		return err
 	}
 
-	resp.Release()
+	ctx.Release()
 
 	return nil
 }
 
-func (c *Client) Do(req *Request) (*Response, error) {
+func (c *Client) Do(req *Request) (*Ctx, error) {
 	return c.do(req)
 }
 
-func (c *Client) do(req *Request) (*Response, error) {
-	ctx := Ctx{Request: req, client: c}
-	if err := c.middlewares[0](&ctx); err != nil {
+func (c *Client) do(req *Request) (*Ctx, error) {
+	ctx := AcquireCtx()
+	ctx.Request = req
+	ctx.client = c
+
+	if err := c.middlewares[0](ctx); err != nil {
 		return nil, err
 	}
 
-	return ctx.Response, nil
+	return ctx, nil
 }
 
 func do(ctx *Ctx) error {

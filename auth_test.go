@@ -18,10 +18,10 @@ func TestOauth1(t *testing.T) {
 	url := "https://api.twitter.com/2/users/1443522425690288140/tweets"
 	args := NewArgs()
 	args.Add("max_results", "20")
-	resp, err := Get(url, args)
+	ctx, err := Get(url, args)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	t.Log(resp.String())
+	t.Log(ctx.Response.String())
 }

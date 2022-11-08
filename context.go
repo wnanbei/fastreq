@@ -2,6 +2,8 @@ package fastreq
 
 import (
 	"context"
+	"sync"
+
 	"github.com/valyala/fasthttp"
 )
 
@@ -28,6 +30,15 @@ func (c *Ctx) Next() (err error) {
 	}
 }
 
+func (c *Ctx) Release() {
+	c.Request.Release()
+	c.Response.Release()
+	c.client = nil
+	c.indexMiddleware = 0
+
+	ctxPool.Put(c)
+}
+
 func (c *Ctx) fastClient() *fasthttp.Client {
 	return c.client.Client
 }
@@ -38,4 +49,14 @@ func (c *Ctx) fastRequest() *fasthttp.Request {
 
 func (c *Ctx) fastResponse() *fasthttp.Response {
 	return c.Response.Response
+}
+
+var ctxPool sync.Pool
+
+func AcquireCtx() *Ctx {
+	v := ctxPool.Get()
+	if v == nil {
+		return &Ctx{}
+	}
+	return v.(*Ctx)
 }

@@ -2,31 +2,31 @@ package fastreq
 
 var defaultClient = NewClient()
 
-func Get(url string, params *Args) (*Response, error) {
+func Get(url string, params *Args) (*Ctx, error) {
 	return defaultClient.Get(url, params)
 }
 
-func Head(url string, params *Args) (*Response, error) {
+func Head(url string, params *Args) (*Ctx, error) {
 	return defaultClient.Head(url, params)
 }
 
-func Post(url string, body *Args) (*Response, error) {
+func Post(url string, body *Args) (*Ctx, error) {
 	return defaultClient.Post(url, body)
 }
 
-func Put(url string, body *Args) (*Response, error) {
+func Put(url string, body *Args) (*Ctx, error) {
 	return defaultClient.Put(url, body)
 }
 
-func Patch(url string, params *Args) (*Response, error) {
+func Patch(url string, params *Args) (*Ctx, error) {
 	return defaultClient.Patch(url, params)
 }
 
-func Delete(url string, params *Args) (*Response, error) {
+func Delete(url string, params *Args) (*Ctx, error) {
 	return defaultClient.Delete(url, params)
 }
 
-func Do(req *Request) (*Response, error) {
+func Do(req *Request) (*Ctx, error) {
 	return defaultClient.Do(req)
 }
 
