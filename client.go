@@ -207,3 +207,7 @@ func (c *Client) SkipInsecureVerify(isSkip bool) {
 func (c *Client) SetOauth1(o *auth.Oauth1) {
 	c.middlewares = append(c.middlewares, auth.MiddlewareOauth1(o))
 }
+
+func (c *Client) AddMiddleware(middlewares ...Middleware) {
+	c.middlewares = append(c.middlewares, middlewares...)
+}

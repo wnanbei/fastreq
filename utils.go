@@ -15,3 +15,5 @@ func NewArgs() *Args {
 func (a *Args) Release() {
 	fasthttp.ReleaseArgs(a.Args)
 }
+
+type Middleware func(ctx *Ctx) error
