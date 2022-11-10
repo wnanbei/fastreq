@@ -1,16 +1,24 @@
-package fastreq
+package auth
 
 import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base64"
+	"github.com/valyala/fasthttp"
+	"github.com/wnanbei/fastreq"
 	"math/rand"
 	"strconv"
 	"time"
-
-	"github.com/valyala/fasthttp"
 )
+
+func MiddlewareOauth1(o *Oauth1) fastreq.Middleware {
+	return func(ctx *fastreq.Ctx) error {
+		auth := o.GenHeader(ctx.Request)
+		ctx.Request.Header.SetBytesV("Authorization", auth)
+		return ctx.Next()
+	}
+}
 
 type Oauth1 struct {
 	ConsumerKey    string
@@ -19,7 +27,7 @@ type Oauth1 struct {
 	AccessSecret   string
 }
 
-func (o Oauth1) GenHeader(req *Request) []byte {
+func (o Oauth1) GenHeader(req *fastreq.Request) []byte {
 	args := fasthttp.AcquireArgs()
 
 	args.Add("oauth_consumer_key", o.ConsumerKey)
@@ -37,7 +45,7 @@ func (o Oauth1) GenHeader(req *Request) []byte {
 	return o.header(req, args, signature)
 }
 
-func (o Oauth1) signature(req *Request, args *fasthttp.Args) []byte {
+func (o Oauth1) signature(req *fastreq.Request, args *fasthttp.Args) []byte {
 	args.Sort(bytes.Compare)
 	queryString := args.QueryString()
 
@@ -66,7 +74,7 @@ func (o Oauth1) signature(req *Request, args *fasthttp.Args) []byte {
 	return encodedSignature
 }
 
-func (o Oauth1) header(req *Request, args *fasthttp.Args, signature []byte) []byte {
+func (o Oauth1) header(req *fastreq.Request, args *fasthttp.Args, signature []byte) []byte {
 	header := bytes.NewBuffer([]byte(`OAuth oauth_consumer_key="`))
 	header.Write(queryEscape(args.Peek("oauth_consumer_key")))
 	header.WriteString(`", oauth_nonce="`)

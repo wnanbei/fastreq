@@ -1,5 +1,7 @@
 package fastreq
 
+import "github.com/wnanbei/fastreq/middleware/auth"
+
 var defaultClient = NewClient()
 
 func Get(url string, params *Args) (*Ctx, error) {
@@ -46,7 +48,7 @@ func SetEnvHTTPProxy() {
 	defaultClient.SetEnvHTTPProxy()
 }
 
-func SetOauth1(o *Oauth1) {
+func SetOauth1(o *auth.Oauth1) {
 	defaultClient.SetOauth1(o)
 }
 
