@@ -8,7 +8,6 @@ import (
 
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpproxy"
-	"github.com/wnanbei/fastreq/middleware/auth"
 )
 
 // Client ...
@@ -18,7 +17,7 @@ type Client struct {
 	maxRedirectsCount int
 	timeout           time.Duration
 	debugWriter       []io.Writer
-	auth              auth.Oauth1
+	auth              Oauth1
 	middlewares       []Middleware
 }
 
@@ -204,8 +203,8 @@ func (c *Client) SkipInsecureVerify(isSkip bool) {
 	}
 }
 
-func (c *Client) SetOauth1(o *auth.Oauth1) {
-	c.middlewares = append(c.middlewares, auth.MiddlewareOauth1(o))
+func (c *Client) SetOauth1(o *Oauth1) {
+	c.middlewares = append(c.middlewares, MiddlewareOauth1(o))
 }
 
 func (c *Client) AddMiddleware(middlewares ...Middleware) {

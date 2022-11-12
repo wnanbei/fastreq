@@ -3,14 +3,12 @@ package fastreq
 import (
 	"bufio"
 	"encoding/json"
+	"github.com/tidwall/gjson"
+	"github.com/valyala/fasthttp"
 	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
-
-	"github.com/tidwall/gjson"
-	"github.com/valyala/fasthttp"
-	"github.com/wnanbei/fastreq/internal/utils"
 )
 
 // Response ...
@@ -42,9 +40,9 @@ func (r *Response) FileName() string {
 	}
 	n := regexp.MustCompile(`['"]`).ReplaceAll(matches[1], []byte{})
 
-	un, err := url.QueryUnescape(utils.UnsafeB2S(n))
+	un, err := url.QueryUnescape(unsafeB2S(n))
 	if err != nil {
-		return utils.UnsafeB2S(n)
+		return unsafeB2S(n)
 	}
 
 	return un
