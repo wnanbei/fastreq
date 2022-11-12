@@ -3,12 +3,13 @@ package fastreq
 import (
 	"bufio"
 	"encoding/json"
-	"github.com/tidwall/gjson"
-	"github.com/valyala/fasthttp"
 	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
+
+	"github.com/tidwall/gjson"
+	"github.com/valyala/fasthttp"
 )
 
 // Response ...
@@ -57,6 +58,11 @@ func (r *Response) Json(v interface{}) error {
 	}
 
 	return json.Unmarshal(body, v)
+}
+
+func (r *Response) JsonPart(path string, v interface{}) error {
+	part := gjson.GetBytes(r.Body(), path)
+	return json.Unmarshal([]byte(part.Raw), v)
 }
 
 func (r *Response) JsonGet(path string) gjson.Result {

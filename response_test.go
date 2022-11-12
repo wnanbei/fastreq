@@ -2,6 +2,7 @@ package fastreq
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/tidwall/gjson"
@@ -79,4 +80,25 @@ func BenchmarkJsonUnmarshl(b *testing.B) {
 		var v map[string]interface{}
 		json.Unmarshal(s, v)
 	}
+}
+
+func TestJsonPart(t *testing.T) {
+	client := NewClient()
+	client.AddMiddleware(MiddlewareLogger())
+
+	params := NewArgs()
+	params.Add("hello", "world")
+	params.Add("params", "2")
+	resp, err := client.Get("http://httpbin.org/get", params)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var data map[string]interface{}
+	if err := resp.Response.JsonPart("headers", &data); err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("\n%+v", data)
+	Release(resp)
 }

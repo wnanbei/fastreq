@@ -124,8 +124,14 @@ func (c *Client) do(req *Request) (*Ctx, error) {
 	ctx.Request = req
 	ctx.client = c
 
-	if err := c.middlewares[0](ctx); err != nil {
-		return nil, err
+	if len(c.middlewares) > 0 {
+		if err := c.middlewares[0](ctx); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := do(ctx); err != nil {
+			return nil, err
+		}
 	}
 
 	return ctx, nil
