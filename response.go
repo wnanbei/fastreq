@@ -62,6 +62,9 @@ func (r *Response) Json(v interface{}) error {
 
 func (r *Response) JsonPart(path string, v interface{}) error {
 	part := gjson.GetBytes(r.Body(), path)
+	if part.Raw == "" {
+		return nil
+	}
 	return json.Unmarshal([]byte(part.Raw), v)
 }
 
