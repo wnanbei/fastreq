@@ -1,104 +1,108 @@
 package fastreq
 
 import (
-	"encoding/json"
-	"fmt"
 	"testing"
 
-	"github.com/tidwall/gjson"
+	jsoniter "github.com/json-iterator/go"
 )
 
-func BenchmarkJsonGet(b *testing.B) {
-	s := `{
-  "name": {"first": "Tom", "last": "Anderson"},
-  "age":37,
-  "children": ["Sara","Alex","Jack"],
-  "fav.movie": "Deer Hunter",
-  "friends": [
-    {"first": "Dale", "last": "Murphy", "age": 44, "nets": ["ig", "fb", "tw"]},
-    {"first": "Roger", "last": "Craig", "age": 68, "nets": ["fb", "tw"]},
-    {"first": "Jane", "last": "Murphy", "age": 47, "nets": ["ig", "tw"]}
-  ]
-}`
+var jsonExamples = []byte(`{
+	"name": {"first": "Tom", "last": "Anderson"},
+	"age":37,
+	"children": ["Sara","Alex","Jack"],
+	"fav.movie": "Deer Hunter",
+	"friends": [
+	  {"first": "Dale", "last": "Murphy", "age": 44, "nets": ["ig", "fb", "tw"]},
+	  {"first": "Roger", "last": "Craig", "age": 68, "nets": ["fb", "tw"]},
+	  {"first": "Jane", "last": "Murphy", "age": 47, "nets": ["ig", "tw"]}
+	]
+  }`)
 
-	for i := 0; i < b.N; i++ {
-		gjson.Get(s, "friends.3.nets").String()
-	}
-}
-
-func BenchmarkJsonGetBytes(b *testing.B) {
-	s := []byte(`{
-  "name": {"first": "Tom", "last": "Anderson"},
-  "age":37,
-  "children": ["Sara","Alex","Jack"],
-  "fav.movie": "Deer Hunter",
-  "friends": [
-    {"first": "Dale", "last": "Murphy", "age": 44, "nets": ["ig", "fb", "tw"]},
-    {"first": "Roger", "last": "Craig", "age": 68, "nets": ["fb", "tw"]},
-    {"first": "Jane", "last": "Murphy", "age": 47, "nets": ["ig", "tw"]}
-  ]
-}`)
-
-	for i := 0; i < b.N; i++ {
-		gjson.GetBytes(s, "friends.3.nets").String()
-	}
-}
-
-func BenchmarkJsonParseGet(b *testing.B) {
-	s := `{
-  "name": {"first": "Tom", "last": "Anderson"},
-  "age":37,
-  "children": ["Sara","Alex","Jack"],
-  "fav.movie": "Deer Hunter",
-  "friends": [
-    {"first": "Dale", "last": "Murphy", "age": 44, "nets": ["ig", "fb", "tw"]},
-    {"first": "Roger", "last": "Craig", "age": 68, "nets": ["fb", "tw"]},
-    {"first": "Jane", "last": "Murphy", "age": 47, "nets": ["ig", "tw"]}
-  ]
-}`
-
-	for i := 0; i < b.N; i++ {
-		r := gjson.Parse(s)
-		r.Get("friends.3.nets").String()
-	}
-}
-
-func BenchmarkJsonUnmarshl(b *testing.B) {
-	s := []byte(`{
-  "name": {"first": "Tom", "last": "Anderson"},
-  "age":37,
-  "children": ["Sara","Alex","Jack"],
-  "fav.movie": "Deer Hunter",
-  "friends": [
-    {"first": "Dale", "last": "Murphy", "age": 44, "nets": ["ig", "fb", "tw"]},
-    {"first": "Roger", "last": "Craig", "age": 68, "nets": ["fb", "tw"]},
-    {"first": "Jane", "last": "Murphy", "age": 47, "nets": ["ig", "tw"]}
-  ]
-}`)
+func BenchmarkJson(b *testing.B) {
+	resp := NewResponse()
+	resp.SetBody(jsonExamples)
+	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
 		var v map[string]interface{}
-		json.Unmarshal(s, v)
+		resp.Json(v)
 	}
 }
 
-func TestJsonPart(t *testing.T) {
-	client := NewClient()
-	client.AddMiddleware(MiddlewareLogger())
+func BenchmarkJsoniter(b *testing.B) {
+	SetJsonUnmarshal(jsoniter.Unmarshal)
+	resp := NewResponse()
+	resp.SetBody(jsonExamples)
+	b.ResetTimer()
 
-	params := NewArgs()
-	params.Add("hello", "world")
-	params.Add("params", "2")
-	resp, err := client.Get("http://httpbin.org/get", params)
-	if err != nil {
-		t.Fatal(err)
+	for i := 0; i < b.N; i++ {
+		var v map[string]interface{}
+		resp.Json(v)
 	}
+}
+
+func BenchmarkJsonPart(b *testing.B) {
+	resp := NewResponse()
+	resp.SetBody(jsonExamples)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		var v map[string]interface{}
+		resp.JsonPart("friends.0", v)
+	}
+}
+
+func BenchmarkJsonGet(b *testing.B) {
+	resp := NewResponse()
+	resp.SetBody(jsonExamples)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		resp.JsonGet("friends.2.last")
+	}
+}
+
+func BenchmarkJsonGetMany(b *testing.B) {
+	resp := NewResponse()
+	resp.SetBody(jsonExamples)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		resp.JsonGetMany("friends.2.last")
+	}
+}
+
+func TestJson(t *testing.T) {
+	resp := NewResponse()
+	resp.SetBody(jsonExamples)
 
 	var data map[string]interface{}
-	if err := resp.Response.JsonPart("headers", &data); err != nil {
+	if err := resp.Json(&data); err != nil {
 		t.Fatal(err)
 	}
 
-	fmt.Printf("\n%+v", data)
+	t.Logf("%+v", data)
+	Release(resp)
+}
+
+func TestJsonGet(t *testing.T) {
+	resp := NewResponse()
+	resp.SetBody(jsonExamples)
+
+	var data []map[string]interface{}
+	if err := resp.JsonPart("friends", &data); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("%+v", data)
+	Release(resp)
+}
+
+func TestJsonPart(t *testing.T) {
+	resp := NewResponse()
+	resp.SetBody(jsonExamples)
+
+	t.Log(resp.JsonGet("friends.2.last").String())
+
 	Release(resp)
 }

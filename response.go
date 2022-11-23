@@ -2,7 +2,6 @@ package fastreq
 
 import (
 	"bufio"
-	"encoding/json"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -57,15 +56,16 @@ func (r *Response) Json(v interface{}) error {
 		return err
 	}
 
-	return json.Unmarshal(body, v)
+	return jsonUnmarshal(body, v)
 }
 
-func (r *Response) JsonPart(path string, v interface{}) error {
-	part := gjson.GetBytes(r.Body(), path)
-	if part.Raw == "" {
-		return nil
+func (r *Response) JsonSonic(v interface{}) error {
+	body, err := r.BodyUncompressed()
+	if err != nil {
+		return err
 	}
-	return json.Unmarshal([]byte(part.Raw), v)
+
+	return jsonUnmarshal(body, v)
 }
 
 func (r *Response) JsonGet(path string) gjson.Result {
@@ -74,6 +74,14 @@ func (r *Response) JsonGet(path string) gjson.Result {
 
 func (r *Response) JsonGetMany(path ...string) []gjson.Result {
 	return gjson.GetManyBytes(r.Body(), path...)
+}
+
+func (r *Response) JsonPart(path string, v interface{}) error {
+	part := gjson.GetBytes(r.Body(), path)
+	if part.Raw == "" {
+		return nil
+	}
+	return jsonUnmarshal(unsafeS2B(part.Raw), v)
 }
 
 // ================================= Get Body End ===============================

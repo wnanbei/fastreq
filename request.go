@@ -1,7 +1,6 @@
 package fastreq
 
 import (
-	"encoding/json"
 	"encoding/xml"
 	"io/ioutil"
 	"mime/multipart"
@@ -99,7 +98,7 @@ func (r *Request) SetCookie(key, value string) {
 func (r *Request) SetBodyJSON(v interface{}) error {
 	r.Header.SetContentType(MIMEApplicationJSON)
 
-	body, err := json.Marshal(v)
+	body, err := jsonMarshal(v)
 	if err != nil {
 		return err
 	}
