@@ -1,4 +1,7 @@
-.PHONY: jsonBenchmark
+.PHONY: test jsonBenchmark
+
+test:
+	go test -v -cover
 
 jsonBenchmark:
-	go test -benchmem -run=^$$ -bench ^BenchmarkJson
+	go test -v -benchmem -run=^$$ -bench ^BenchmarkJson
