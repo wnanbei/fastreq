@@ -59,15 +59,6 @@ func (r *Response) Json(v interface{}) error {
 	return jsonUnmarshal(body, v)
 }
 
-func (r *Response) JsonSonic(v interface{}) error {
-	body, err := r.BodyUncompressed()
-	if err != nil {
-		return err
-	}
-
-	return jsonUnmarshal(body, v)
-}
-
 func (r *Response) JsonGet(path string) gjson.Result {
 	return gjson.GetBytes(r.Body(), path)
 }
@@ -76,7 +67,7 @@ func (r *Response) JsonGetMany(path ...string) []gjson.Result {
 	return gjson.GetManyBytes(r.Body(), path...)
 }
 
-func (r *Response) JsonPart(path string, v interface{}) error {
+func (r *Response) JsonGetPartOf(path string, v interface{}) error {
 	part := gjson.GetBytes(r.Body(), path)
 	if part.Raw == "" {
 		return nil

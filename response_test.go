@@ -41,14 +41,14 @@ func BenchmarkJsoniter(b *testing.B) {
 	}
 }
 
-func BenchmarkJsonPart(b *testing.B) {
+func BenchmarkJsonGetPartOf(b *testing.B) {
 	resp := NewResponse()
 	resp.SetBody(jsonExamples)
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
 		var v map[string]interface{}
-		resp.JsonPart("friends.0", v)
+		resp.JsonGetPartOf("friends.0", v)
 	}
 }
 
@@ -80,8 +80,6 @@ func TestJson(t *testing.T) {
 	if err := resp.Json(&data); err != nil {
 		t.Fatal(err)
 	}
-
-	t.Logf("%+v", data)
 	Release(resp)
 }
 
@@ -89,20 +87,18 @@ func TestJsonGet(t *testing.T) {
 	resp := NewResponse()
 	resp.SetBody(jsonExamples)
 
-	var data []map[string]interface{}
-	if err := resp.JsonPart("friends", &data); err != nil {
-		t.Fatal(err)
-	}
+	resp.JsonGet("friends.2.last").String()
 
-	t.Logf("%+v", data)
 	Release(resp)
 }
 
-func TestJsonPart(t *testing.T) {
+func TestJsonGetPartOf(t *testing.T) {
 	resp := NewResponse()
 	resp.SetBody(jsonExamples)
 
-	t.Log(resp.JsonGet("friends.2.last").String())
-
+	var data []map[string]interface{}
+	if err := resp.JsonGetPartOf("friends", &data); err != nil {
+		t.Fatal(err)
+	}
 	Release(resp)
 }
