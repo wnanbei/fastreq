@@ -100,6 +100,16 @@ func (c *Client) Delete(url string, params *Args) (*Ctx, error) {
 	return c.do(req)
 }
 
+func (c *Client) Connect(url string, params *Args) (*Ctx, error) {
+	req := NewRequest(CONNECT, url)
+
+	if params != nil {
+		req.SetQueryParams(params)
+	}
+
+	return c.do(req)
+}
+
 func (c *Client) DownloadFile(req *Request, path, filename string) error {
 	ctx, err := c.do(req)
 	if err != nil {

@@ -28,6 +28,10 @@ func Delete(url string, params *Args) (*Ctx, error) {
 	return defaultClient.Delete(url, params)
 }
 
+func Connect(url string, params *Args) (*Ctx, error) {
+	return defaultClient.Connect(url, params)
+}
+
 func Do(req *Request) (*Ctx, error) {
 	return defaultClient.Do(req)
 }
