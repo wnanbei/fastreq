@@ -5,6 +5,8 @@ import "time"
 // Version of fastreq
 const Version = "0.2.1"
 
+const defaultUserAgent = "fastreq@" + Version
+
 // HTTPMethod http request method
 type HTTPMethod string
 
