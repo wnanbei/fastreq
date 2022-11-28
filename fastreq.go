@@ -40,3 +40,15 @@ const (
 )
 
 const defaultTimeout = time.Second * 30
+
+// DebugLevel debug log level
+type DebugLevel int
+
+const (
+	DebugClose DebugLevel = iota // close debug
+	DebugSimple
+	DebugDetail
+)
+
+// debugLimit limit length of debug logging output
+const debugLimit = 10000

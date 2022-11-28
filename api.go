@@ -56,6 +56,10 @@ func SetOauth1(o *Oauth1) {
 	defaultClient.SetOauth1(o)
 }
 
+func SetDebugLevel(lvl DebugLevel) {
+	defaultClient.SetDebugLevel(lvl)
+}
+
 type Releaser interface {
 	Release()
 }

@@ -2,8 +2,7 @@ package fastreq
 
 import (
 	"crypto/tls"
-	"io"
-	"os"
+	"fmt"
 	"time"
 
 	"github.com/valyala/fasthttp"
@@ -16,7 +15,7 @@ type Client struct {
 	userAgent         string
 	maxRedirectsCount int
 	timeout           time.Duration
-	debugWriter       []io.Writer
+	debugLevel        DebugLevel
 	auth              Oauth1
 	middlewares       []Middleware
 }
@@ -25,7 +24,6 @@ type Client struct {
 func NewClient() *Client {
 	return &Client{
 		Client:      &fasthttp.Client{},
-		debugWriter: []io.Writer{os.Stdout},
 		middlewares: []Middleware{},
 	}
 }
@@ -33,12 +31,9 @@ func NewClient() *Client {
 // NewClientFromFastHTTP ...
 func NewClientFromFastHTTP(client *fasthttp.Client) *Client {
 	return &Client{
-		Client:      client,
-		debugWriter: []io.Writer{os.Stdout},
+		Client: client,
 	}
 }
-
-// ================================= Client Send Request =================================
 
 func (c *Client) Get(url string, params *Args) (*Ctx, error) {
 	req := NewRequest(GET, url)
@@ -155,19 +150,20 @@ func do(ctx *Ctx) error {
 		}
 	}
 
+	start := time.Now()
+	debugBeforeRequest(ctx, start)
+
 	resp := fasthttp.AcquireResponse()
 	if err := ctx.client.DoTimeout(ctx.fastRequest(), resp, ctx.client.timeout); err != nil {
 		fasthttp.ReleaseResponse(resp)
 		return err
 	}
-
 	ctx.Response = NewResponseFromFastHTTP(resp)
+
+	debugAfterRequest(ctx, start)
+
 	return nil
 }
-
-// ================================= Client Send Request End ============================
-
-// ================================= Client Send Proxy ===============================
 
 func (c *Client) SetHTTPProxy(proxy string) {
 	c.Dial = fasthttpproxy.FasthttpHTTPDialer(proxy)
@@ -181,10 +177,6 @@ func (c *Client) SetEnvHTTPProxy() {
 	c.Dial = fasthttpproxy.FasthttpProxyHTTPDialer()
 }
 
-// ================================= Client Send Proxy End ===============================
-
-// ================================= Client Settings ====================================
-
 func (c *Client) SetTimeout(timeout time.Duration) {
 	c.timeout = timeout
 }
@@ -193,8 +185,8 @@ func (c *Client) SetUserAgent(userAgent string) {
 	c.userAgent = userAgent
 }
 
-func (c *Client) SetDebugWriter(debugWriter ...io.Writer) {
-	c.debugWriter = debugWriter
+func (c *Client) SetDebugLevel(lvl DebugLevel) {
+	c.debugLevel = lvl
 }
 
 func (c *Client) SetTLSConfig(config *tls.Config) {
@@ -225,4 +217,62 @@ func (c *Client) SetOauth1(o *Oauth1) {
 
 func (c *Client) AddMiddleware(middlewares ...Middleware) {
 	c.middlewares = append(c.middlewares, middlewares...)
+}
+
+func debugBeforeRequest(ctx *Ctx, start time.Time) {
+	switch ctx.client.debugLevel {
+	case DebugClose:
+		return
+	case DebugSimple:
+		fmt.Printf(
+			"REQUEST[%s]: %s %s\n",
+			start.Format("2006-01-02 15:04:05"),
+			ctx.Request.Header.Method(),
+			ctx.Request.URI().FullURI(),
+		)
+	case DebugDetail:
+		body := ctx.Request.String()
+		if len(body) > debugLimit {
+			body = body[:debugLimit] + "\n"
+		}
+		fmt.Printf(
+			"REQUEST[%s]: %s %s\n%s",
+			start.Format("2006-01-02 15:04:05"),
+			ctx.Request.Header.Method(),
+			ctx.Request.URI().FullURI(),
+			body,
+		)
+	}
+}
+
+func debugAfterRequest(ctx *Ctx, start time.Time) {
+	switch ctx.client.debugLevel {
+	case DebugClose:
+		return
+	case DebugSimple:
+		end := time.Now()
+		fmt.Printf(
+			"RESPONSE[%s]: %d %dms %s %s\n",
+			end.Format("2006-01-02 15:04:05"),
+			ctx.Response.StatusCode(),
+			end.Sub(start).Milliseconds(),
+			ctx.Request.Header.Method(),
+			ctx.Request.URI().FullURI(),
+		)
+	case DebugDetail:
+		end := time.Now()
+		body := ctx.Response.String()
+		if len(body) > debugLimit {
+			body = body[:debugLimit] + "\n"
+		}
+		fmt.Printf(
+			"RESPONSE[%s]: %d %dms %s %s\n%s",
+			end.Format("2006-01-02 15:04:05"),
+			ctx.Response.StatusCode(),
+			end.Sub(start).Milliseconds(),
+			ctx.Request.Header.Method(),
+			ctx.Request.URI().FullURI(),
+			body,
+		)
+	}
 }
