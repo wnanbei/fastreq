@@ -3,21 +3,7 @@ package fastreq
 import (
 	"reflect"
 	"unsafe"
-
-	"github.com/valyala/fasthttp"
 )
-
-type Args struct {
-	*fasthttp.Args
-}
-
-func NewArgs() *Args {
-	return &Args{fasthttp.AcquireArgs()}
-}
-
-func (a *Args) Release() {
-	fasthttp.ReleaseArgs(a.Args)
-}
 
 // unsafeB2S converts byte slice to a string without memory allocation.
 // See https://groups.google.com/forum/#!msg/Golang-Nuts/ENgbUzYvCuU/90yGx7GUAgAJ .

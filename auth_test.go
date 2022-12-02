@@ -14,6 +14,7 @@ func TestOauth1(t *testing.T) {
 
 	SetOauth1(&auth1)
 	SetHTTPProxy("localhost:8001")
+	SetDebugLevel(DebugDetail)
 
 	url := "https://api.twitter.com/2/users/1443522425690288140/tweets"
 	args := NewQueryParams()
