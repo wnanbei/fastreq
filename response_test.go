@@ -87,7 +87,10 @@ func TestJsonGet(t *testing.T) {
 	resp := NewResponse()
 	resp.SetBody(jsonExamples)
 
-	resp.JsonGet("friends.2.last").String()
+	s := resp.JsonGet("friends.2.last").String()
+	if s != "Murphy" {
+		t.Fatal("error")
+	}
 
 	Release(resp)
 }

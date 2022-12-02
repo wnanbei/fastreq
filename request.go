@@ -233,22 +233,10 @@ func (a *PostForm) Release() {
 	fasthttp.ReleaseArgs(a.Args)
 }
 
-type Headers struct {
-}
-
-func (a *Headers) BindRequest(req *Request) {
-}
-
-type Cookies struct {
-}
-
-func (a *Cookies) BindRequest(req *Request) {
-}
-
-type Body struct {
-}
+type Body []byte
 
 func (a *Body) BindRequest(req *Request) {
+	req.SetBody(*a)
 }
 
 type JsonBody struct {
