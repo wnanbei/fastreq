@@ -4,36 +4,36 @@ import jsoniter "github.com/json-iterator/go"
 
 var defaultClient = NewClient()
 
-func Get(url string, params *Args) (*Ctx, error) {
-	return defaultClient.Get(url, params)
+func Get(url string, opts ...ReqOption) (*Ctx, error) {
+	return defaultClient.Get(url, opts...)
 }
 
-func Head(url string, params *Args) (*Ctx, error) {
-	return defaultClient.Head(url, params)
+func Head(url string, opts ...ReqOption) (*Ctx, error) {
+	return defaultClient.Head(url, opts...)
 }
 
-func Post(url string, body *Args) (*Ctx, error) {
-	return defaultClient.Post(url, body)
+func Post(url string, opts ...ReqOption) (*Ctx, error) {
+	return defaultClient.Post(url, opts...)
 }
 
-func Put(url string, body *Args) (*Ctx, error) {
-	return defaultClient.Put(url, body)
+func Put(url string, opts ...ReqOption) (*Ctx, error) {
+	return defaultClient.Put(url, opts...)
 }
 
-func Patch(url string, params *Args) (*Ctx, error) {
-	return defaultClient.Patch(url, params)
+func Patch(url string, opts ...ReqOption) (*Ctx, error) {
+	return defaultClient.Patch(url, opts...)
 }
 
-func Delete(url string, params *Args) (*Ctx, error) {
-	return defaultClient.Delete(url, params)
+func Delete(url string, opts ...ReqOption) (*Ctx, error) {
+	return defaultClient.Delete(url, opts...)
 }
 
-func Connect(url string, params *Args) (*Ctx, error) {
-	return defaultClient.Connect(url, params)
+func Connect(url string, opts ...ReqOption) (*Ctx, error) {
+	return defaultClient.Connect(url, opts...)
 }
 
-func Do(req *Request) (*Ctx, error) {
-	return defaultClient.Do(req)
+func Do(req *Request, opts ...ReqOption) (*Ctx, error) {
+	return defaultClient.Do(req, opts...)
 }
 
 func DownloadFile(req *Request, path, filename string) error {

@@ -35,74 +35,39 @@ func NewClientFromFastHTTP(client *fasthttp.Client) *Client {
 	}
 }
 
-func (c *Client) Get(url string, params *Args) (*Ctx, error) {
+func (c *Client) Get(url string, opts ...ReqOption) (*Ctx, error) {
 	req := NewRequest(GET, url)
-
-	if params != nil {
-		req.SetQueryParams(params)
-	}
-
-	return c.do(req)
+	return c.Do(req, opts...)
 }
 
-func (c *Client) Head(url string, params *Args) (*Ctx, error) {
+func (c *Client) Head(url string, opts ...ReqOption) (*Ctx, error) {
 	req := NewRequest(HEAD, url)
-
-	if params != nil {
-		req.SetQueryParams(params)
-	}
-
-	return c.do(req)
+	return c.Do(req, opts...)
 }
 
-func (c *Client) Post(url string, body *Args) (*Ctx, error) {
+func (c *Client) Post(url string, opts ...ReqOption) (*Ctx, error) {
 	req := NewRequest(POST, url)
-
-	if body != nil {
-		req.SetBodyForm(body)
-	}
-
-	return c.do(req)
+	return c.Do(req, opts...)
 }
 
-func (c *Client) Put(url string, body *Args) (*Ctx, error) {
+func (c *Client) Put(url string, opts ...ReqOption) (*Ctx, error) {
 	req := NewRequest(PUT, url)
-
-	if body != nil {
-		req.SetBodyForm(body)
-	}
-
-	return c.do(req)
+	return c.Do(req, opts...)
 }
 
-func (c *Client) Patch(url string, params *Args) (*Ctx, error) {
+func (c *Client) Patch(url string, opts ...ReqOption) (*Ctx, error) {
 	req := NewRequest(PATCH, url)
-
-	if params != nil {
-		req.SetQueryParams(params)
-	}
-
-	return c.do(req)
+	return c.Do(req, opts...)
 }
 
-func (c *Client) Delete(url string, params *Args) (*Ctx, error) {
+func (c *Client) Delete(url string, opts ...ReqOption) (*Ctx, error) {
 	req := NewRequest(DELETE, url)
-
-	if params != nil {
-		req.SetQueryParams(params)
-	}
-
-	return c.do(req)
+	return c.Do(req, opts...)
 }
 
-func (c *Client) Connect(url string, params *Args) (*Ctx, error) {
+func (c *Client) Connect(url string, opts ...ReqOption) (*Ctx, error) {
 	req := NewRequest(CONNECT, url)
-
-	if params != nil {
-		req.SetQueryParams(params)
-	}
-
-	return c.do(req)
+	return c.Do(req, opts...)
 }
 
 func (c *Client) DownloadFile(req *Request, path, filename string) error {
@@ -120,7 +85,11 @@ func (c *Client) DownloadFile(req *Request, path, filename string) error {
 	return nil
 }
 
-func (c *Client) Do(req *Request) (*Ctx, error) {
+func (c *Client) Do(req *Request, opts ...ReqOption) (*Ctx, error) {
+	for _, opt := range opts {
+		opt.BindRequest(req)
+	}
+
 	return c.do(req)
 }
 

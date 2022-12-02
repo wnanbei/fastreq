@@ -15,10 +15,15 @@ type Request struct {
 	mw *multipart.Writer
 }
 
-func NewRequest(method HTTPMethod, url string) *Request {
+func NewRequest(method HTTPMethod, url string, opts ...ReqOption) *Request {
 	req := &Request{Request: fasthttp.AcquireRequest()}
 	req.SetMethod(method)
 	req.SetRequestURI(url)
+
+	for _, opt := range opts {
+		opt.BindRequest(req)
+	}
+
 	return req
 }
 
@@ -190,4 +195,56 @@ func (r *Request) Copy() *Request {
 func (r *Request) Release() {
 	fasthttp.ReleaseRequest(r.Request)
 	r.mw = nil
+}
+
+type ReqOption interface {
+	BindRequest(req *Request)
+}
+
+type QueryParams struct {
+	*fasthttp.Args
+}
+
+func NewQueryParams() *Args {
+	return &Args{fasthttp.AcquireArgs()}
+}
+
+func (a *QueryParams) BindRequest(req *Request) {
+	fasthttp.ReleaseArgs(a.Args)
+}
+
+func (a *QueryParams) Release() {
+	fasthttp.ReleaseArgs(a.Args)
+}
+
+type PostForm struct {
+	*fasthttp.Args
+}
+
+func (a *PostForm) BindRequest(req *Request) {
+	fasthttp.ReleaseArgs(a.Args)
+}
+
+type Headers struct {
+}
+
+func (a *Headers) BindRequest(req *Request) {
+}
+
+type Cookies struct {
+}
+
+func (a *Cookies) BindRequest(req *Request) {
+}
+
+type Body struct {
+}
+
+func (a *Body) BindRequest(req *Request) {
+}
+
+type JsonBody struct {
+}
+
+func (a *JsonBody) BindRequest(req *Request) {
 }
