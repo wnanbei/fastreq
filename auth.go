@@ -6,6 +6,7 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"math/rand"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -39,18 +40,18 @@ func (o Oauth1) GenHeader(req *Request) []byte {
 
 func (o Oauth1) signature(req *Request, args *fasthttp.Args) []byte {
 	args.Sort(bytes.Compare)
-	queryString := args.QueryString()
+	queryString := args.String()
 
 	signatureBase := bytes.Buffer{}
 	signatureBase.Grow(len(queryString))
 	signatureBase.Write(req.Header.Method())
 	signatureBase.WriteString("&")
-	signatureBase.Write(queryEscape(req.URI().Scheme()))
-	signatureBase.Write(queryEscape([]byte("://")))
-	signatureBase.Write(queryEscape(req.URI().Host()))
-	signatureBase.Write(queryEscape(req.URI().Path()))
+	signatureBase.WriteString(url.QueryEscape(string(req.URI().Scheme())))
+	signatureBase.WriteString(url.QueryEscape("://"))
+	signatureBase.WriteString(url.QueryEscape(string(req.URI().Host())))
+	signatureBase.WriteString(url.QueryEscape(string(req.URI().Path())))
 	signatureBase.WriteString("&")
-	signatureBase.Write(queryEscape(queryString))
+	signatureBase.WriteString(url.QueryEscape(queryString))
 
 	signatureKey := bytes.Buffer{}
 	signatureKey.Grow(len(o.ConsumerSecret) + len(o.AccessSecret) + 1)
@@ -68,19 +69,19 @@ func (o Oauth1) signature(req *Request, args *fasthttp.Args) []byte {
 
 func (o Oauth1) header(req *Request, args *fasthttp.Args, signature []byte) []byte {
 	header := bytes.NewBuffer([]byte(`OAuth oauth_consumer_key="`))
-	header.Write(queryEscape(args.Peek("oauth_consumer_key")))
+	header.WriteString(url.QueryEscape(unsafeB2S(args.Peek("oauth_consumer_key"))))
 	header.WriteString(`", oauth_nonce="`)
-	header.Write(queryEscape(args.Peek("oauth_nonce")))
+	header.WriteString(url.QueryEscape(unsafeB2S(args.Peek("oauth_nonce"))))
 	header.WriteString(`", oauth_signature="`)
-	header.Write(queryEscape(signature))
+	header.WriteString(url.QueryEscape(unsafeB2S(signature)))
 	header.WriteString(`", oauth_signature_method="`)
-	header.Write(queryEscape(args.Peek("oauth_signature_method")))
+	header.WriteString(url.QueryEscape(unsafeB2S(args.Peek("oauth_signature_method"))))
 	header.WriteString(`", oauth_timestamp="`)
-	header.Write(queryEscape(args.Peek("oauth_timestamp")))
+	header.WriteString(url.QueryEscape(unsafeB2S(args.Peek("oauth_timestamp"))))
 	header.WriteString(`", oauth_token="`)
-	header.Write(queryEscape(args.Peek("oauth_token")))
+	header.WriteString(url.QueryEscape(unsafeB2S(args.Peek("oauth_token"))))
 	header.WriteString(`", oauth_version="`)
-	header.Write(queryEscape(args.Peek("oauth_version")))
+	header.WriteString(url.QueryEscape(unsafeB2S(args.Peek("oauth_version"))))
 	header.WriteString(`"`)
 
 	return header.Bytes()
