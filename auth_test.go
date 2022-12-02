@@ -16,8 +16,8 @@ func TestOauth1(t *testing.T) {
 	SetHTTPProxy("localhost:8001")
 
 	url := "https://api.twitter.com/2/users/1443522425690288140/tweets"
-	args := NewArgs()
-	args.Add("max_results", "20")
+	args := NewQueryParams()
+	args.Add("max_results", "1")
 	ctx, err := Get(url, args)
 	if err != nil {
 		t.Fatal(err)

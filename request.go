@@ -52,10 +52,6 @@ func (r *Request) SetBasicAuth(username, password string) {
 	r.URI().SetPassword(password)
 }
 
-// ================================= Set uri End===================================
-
-// ================================= Set Header ===================================
-
 func (r *Request) SetMethod(method HTTPMethod) {
 	r.Header.SetMethod(string(method))
 }
@@ -96,10 +92,6 @@ func (r *Request) SetCookie(key, value string) {
 	r.Header.SetCookie(key, value)
 }
 
-// ================================= Set Header End ===================================
-
-// ================================= Set Body =========================================
-
 func (r *Request) SetBodyJSON(v interface{}) error {
 	r.Header.SetContentType(MIMEApplicationJSON)
 
@@ -124,19 +116,15 @@ func (r *Request) SetBodyXML(v interface{}) error {
 	return nil
 }
 
-func (r *Request) SetBodyForm(args *Args) {
+func (r *Request) SetBodyForm(form *PostForm) {
 	r.Header.SetContentType(MIMEApplicationForm)
 
-	if args != nil {
-		r.SetBody(args.QueryString())
+	if form != nil {
+		r.SetBody(form.QueryString())
 	}
 
-	Release(args)
+	Release(form)
 }
-
-// ================================= Set Body End ===================================
-
-// ============================== Set Multipart Form ================================
 
 func (r *Request) SetBodyBoundary(boundary string) {
 	if r.mw == nil {
@@ -183,8 +171,6 @@ func (r *Request) AddBodyFile(fieldName, filePath string) error {
 	return nil
 }
 
-// ============================== Set Multipart Form End ============================
-
 func (r *Request) Copy() *Request {
 	req := fasthttp.AcquireRequest()
 	r.CopyTo(req)
@@ -205,12 +191,19 @@ type QueryParams struct {
 	*fasthttp.Args
 }
 
-func NewQueryParams() *Args {
-	return &Args{fasthttp.AcquireArgs()}
+func NewQueryParams(kv ...string) *QueryParams {
+	q := &QueryParams{fasthttp.AcquireArgs()}
+
+	for i := 1; i < len(kv); i += 2 {
+		q.Add(kv[i-1], kv[i])
+	}
+
+	return q
 }
 
-func (a *QueryParams) BindRequest(req *Request) {
-	fasthttp.ReleaseArgs(a.Args)
+func (o *QueryParams) BindRequest(req *Request) {
+	req.Request.URI().SetQueryStringBytes(o.Args.QueryString())
+	fasthttp.ReleaseArgs(o.Args)
 }
 
 func (a *QueryParams) Release() {
@@ -221,7 +214,22 @@ type PostForm struct {
 	*fasthttp.Args
 }
 
+func NewPostForm(kv ...string) *PostForm {
+	f := &PostForm{fasthttp.AcquireArgs()}
+
+	for i := 1; i < len(kv); i += 2 {
+		f.Add(kv[i-1], kv[i])
+	}
+
+	return f
+}
+
 func (a *PostForm) BindRequest(req *Request) {
+	req.SetBodyForm(a)
+	fasthttp.ReleaseArgs(a.Args)
+}
+
+func (a *PostForm) Release() {
 	fasthttp.ReleaseArgs(a.Args)
 }
 

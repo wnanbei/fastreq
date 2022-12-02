@@ -3,7 +3,7 @@ package fastreq
 import "testing"
 
 func TestGet(t *testing.T) {
-	params := NewArgs()
+	params := NewQueryParams()
 	params.Add("hello", "world")
 	params.Add("params", "2")
 	resp, err := Get("http://httpbin.org/get", params)
@@ -14,7 +14,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestPost(t *testing.T) {
-	formBody := NewArgs()
+	formBody := NewQueryParams()
 	formBody.Add("hello", "world")
 	formBody.Add("params", "2")
 	resp, err := Post("http://httpbin.org/post", formBody)
