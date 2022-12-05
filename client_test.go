@@ -44,7 +44,7 @@ func TestClientGet(t *testing.T) {
 
 	resp, err := client.Get("http://make.fasthttp.great", params)
 	require.NoError(t, err)
-	require.Equal(t, fasthttp.StatusOK, resp.Response.StatusCode())
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
 }
 
 func TestClientPost(t *testing.T) {
@@ -70,5 +70,5 @@ func TestClientPost(t *testing.T) {
 
 	resp, err := client.Post("http://make.fasthttp.great", body)
 	require.NoError(t, err)
-	require.Equal(t, fasthttp.StatusOK, resp.Response.StatusCode())
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
 }

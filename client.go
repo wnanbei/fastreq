@@ -35,57 +35,57 @@ func NewClientFromFastHTTP(client *fasthttp.Client) *Client {
 	}
 }
 
-func (c *Client) Get(url string, opts ...ReqOption) (*Ctx, error) {
+func (c *Client) Get(url string, opts ...ReqOption) (*Response, error) {
 	req := NewRequest(GET, url)
 	return c.Do(req, opts...)
 }
 
-func (c *Client) Head(url string, opts ...ReqOption) (*Ctx, error) {
+func (c *Client) Head(url string, opts ...ReqOption) (*Response, error) {
 	req := NewRequest(HEAD, url)
 	return c.Do(req, opts...)
 }
 
-func (c *Client) Post(url string, opts ...ReqOption) (*Ctx, error) {
+func (c *Client) Post(url string, opts ...ReqOption) (*Response, error) {
 	req := NewRequest(POST, url)
 	return c.Do(req, opts...)
 }
 
-func (c *Client) Put(url string, opts ...ReqOption) (*Ctx, error) {
+func (c *Client) Put(url string, opts ...ReqOption) (*Response, error) {
 	req := NewRequest(PUT, url)
 	return c.Do(req, opts...)
 }
 
-func (c *Client) Patch(url string, opts ...ReqOption) (*Ctx, error) {
+func (c *Client) Patch(url string, opts ...ReqOption) (*Response, error) {
 	req := NewRequest(PATCH, url)
 	return c.Do(req, opts...)
 }
 
-func (c *Client) Delete(url string, opts ...ReqOption) (*Ctx, error) {
+func (c *Client) Delete(url string, opts ...ReqOption) (*Response, error) {
 	req := NewRequest(DELETE, url)
 	return c.Do(req, opts...)
 }
 
-func (c *Client) Connect(url string, opts ...ReqOption) (*Ctx, error) {
+func (c *Client) Connect(url string, opts ...ReqOption) (*Response, error) {
 	req := NewRequest(CONNECT, url)
 	return c.Do(req, opts...)
 }
 
 func (c *Client) DownloadFile(req *Request, path, filename string) error {
-	ctx, err := c.do(req)
+	resp, err := c.do(req)
 	if err != nil {
 		return err
 	}
 
-	if err := ctx.Response.SaveToFile(path, filename); err != nil {
+	if err := resp.SaveToFile(path, filename); err != nil {
 		return err
 	}
 
-	ctx.Release()
+	resp.Release()
 
 	return nil
 }
 
-func (c *Client) Do(req *Request, opts ...ReqOption) (*Ctx, error) {
+func (c *Client) Do(req *Request, opts ...ReqOption) (*Response, error) {
 	for _, opt := range opts {
 		opt.BindRequest(req)
 	}
@@ -93,7 +93,7 @@ func (c *Client) Do(req *Request, opts ...ReqOption) (*Ctx, error) {
 	return c.do(req)
 }
 
-func (c *Client) do(req *Request) (*Ctx, error) {
+func (c *Client) do(req *Request) (*Response, error) {
 	ctx := AcquireCtx()
 	ctx.Request = req
 	ctx.client = c
@@ -108,7 +108,7 @@ func (c *Client) do(req *Request) (*Ctx, error) {
 		}
 	}
 
-	return ctx, nil
+	return ctx.Response, nil
 }
 
 func do(ctx *Ctx) error {
@@ -127,7 +127,7 @@ func do(ctx *Ctx) error {
 		fasthttp.ReleaseResponse(resp)
 		return err
 	}
-	ctx.Response = NewResponseFromFastHTTP(resp)
+	ctx.Response = &Response{Response: resp, Request: ctx.Request.Request}
 
 	debugAfterRequest(ctx, start)
 

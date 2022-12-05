@@ -14,17 +14,12 @@ import (
 // Response ...
 type Response struct {
 	*fasthttp.Response
+	Request *fasthttp.Request
 }
 
 func NewResponse() *Response {
 	return &Response{
-		fasthttp.AcquireResponse(),
-	}
-}
-
-func NewResponseFromFastHTTP(resp *fasthttp.Response) *Response {
-	return &Response{
-		resp,
+		Response: fasthttp.AcquireResponse(),
 	}
 }
 
@@ -49,6 +44,10 @@ func (r *Response) FileName() string {
 }
 
 // ================================= Get Body ===================================
+
+func (r *Response) BodyString() string {
+	return unsafeB2S(r.Body())
+}
 
 func (r *Response) Json(v interface{}) error {
 	body, err := r.BodyUncompressed()
@@ -81,7 +80,7 @@ func (r *Response) Copy() *Response {
 	resp := fasthttp.AcquireResponse()
 	r.CopyTo(resp)
 
-	return NewResponseFromFastHTTP(resp)
+	return &Response{Response: resp}
 }
 
 func (r *Response) SaveToFile(path, filename string) error {

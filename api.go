@@ -4,35 +4,35 @@ import jsoniter "github.com/json-iterator/go"
 
 var defaultClient = NewClient()
 
-func Get(url string, opts ...ReqOption) (*Ctx, error) {
+func Get(url string, opts ...ReqOption) (*Response, error) {
 	return defaultClient.Get(url, opts...)
 }
 
-func Head(url string, opts ...ReqOption) (*Ctx, error) {
+func Head(url string, opts ...ReqOption) (*Response, error) {
 	return defaultClient.Head(url, opts...)
 }
 
-func Post(url string, opts ...ReqOption) (*Ctx, error) {
+func Post(url string, opts ...ReqOption) (*Response, error) {
 	return defaultClient.Post(url, opts...)
 }
 
-func Put(url string, opts ...ReqOption) (*Ctx, error) {
+func Put(url string, opts ...ReqOption) (*Response, error) {
 	return defaultClient.Put(url, opts...)
 }
 
-func Patch(url string, opts ...ReqOption) (*Ctx, error) {
+func Patch(url string, opts ...ReqOption) (*Response, error) {
 	return defaultClient.Patch(url, opts...)
 }
 
-func Delete(url string, opts ...ReqOption) (*Ctx, error) {
+func Delete(url string, opts ...ReqOption) (*Response, error) {
 	return defaultClient.Delete(url, opts...)
 }
 
-func Connect(url string, opts ...ReqOption) (*Ctx, error) {
+func Connect(url string, opts ...ReqOption) (*Response, error) {
 	return defaultClient.Connect(url, opts...)
 }
 
-func Do(req *Request, opts ...ReqOption) (*Ctx, error) {
+func Do(req *Request, opts ...ReqOption) (*Response, error) {
 	return defaultClient.Do(req, opts...)
 }
 
