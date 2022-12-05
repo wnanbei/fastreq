@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"path/filepath"
+	"time"
 
 	"github.com/valyala/fasthttp"
 )
@@ -184,7 +185,7 @@ func (r *Request) Release() {
 }
 
 type ReqOption interface {
-	BindRequest(req *Request)
+	BindRequest(req *Request) error
 }
 
 type QueryParams struct {
@@ -201,9 +202,10 @@ func NewQueryParams(kv ...string) *QueryParams {
 	return q
 }
 
-func (o *QueryParams) BindRequest(req *Request) {
+func (o *QueryParams) BindRequest(req *Request) error {
 	req.Request.URI().SetQueryStringBytes(o.Args.QueryString())
 	fasthttp.ReleaseArgs(o.Args)
+	return nil
 }
 
 func (a *QueryParams) Release() {
@@ -224,9 +226,10 @@ func NewPostForm(kv ...string) *PostForm {
 	return f
 }
 
-func (a *PostForm) BindRequest(req *Request) {
+func (a *PostForm) BindRequest(req *Request) error {
 	req.SetBodyForm(a)
 	fasthttp.ReleaseArgs(a.Args)
+	return nil
 }
 
 func (a *PostForm) Release() {
@@ -235,12 +238,30 @@ func (a *PostForm) Release() {
 
 type Body []byte
 
-func (a *Body) BindRequest(req *Request) {
+func NewBody(b []byte) *Body {
+	body := Body(b)
+	return &body
+}
+
+func (a *Body) BindRequest(req *Request) error {
 	req.SetBody(*a)
+	return nil
 }
 
 type JsonBody struct {
+	b interface{}
 }
 
-func (a *JsonBody) BindRequest(req *Request) {
+func NewJsonBody(b interface{}) *JsonBody {
+	return &JsonBody{b: b}
+}
+
+func (a *JsonBody) BindRequest(req *Request) error {
+	return req.SetBodyJSON(a.b)
+}
+
+type Timeout time.Duration
+
+func (t *Timeout) BindRequest(req *Request) {
+	req.SetTimeout(time.Duration(*t))
 }
