@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/valyala/fasthttp"
@@ -13,7 +14,8 @@ import (
 // Request ...
 type Request struct {
 	*fasthttp.Request
-	mw *multipart.Writer
+	mw           *multipart.Writer
+	formFilesNum int
 }
 
 func NewRequest(method HTTPMethod, url string, opts ...ReqOption) *Request {
@@ -117,7 +119,7 @@ func (r *Request) SetBodyXML(v interface{}) error {
 	return nil
 }
 
-func (r *Request) SetBodyForm(form *PostForm) {
+func (r *Request) SetBodyPostForm(form *PostForm) {
 	r.Header.SetContentType(MIMEApplicationForm)
 
 	if form != nil {
@@ -127,12 +129,12 @@ func (r *Request) SetBodyForm(form *PostForm) {
 	Release(form)
 }
 
-func (r *Request) SetBodyBoundary(boundary string) {
+func (r *Request) SetBodyBoundary(boundary string) error {
 	if r.mw == nil {
 		r.mw = multipart.NewWriter(r.BodyWriter())
 	}
 
-	r.mw.SetBoundary(boundary)
+	return r.mw.SetBoundary(boundary)
 }
 
 func (r *Request) AddBodyField(field, value string) error {
@@ -152,13 +154,13 @@ func (r *Request) AddBodyFile(fieldName, filePath string) error {
 		r.mw = multipart.NewWriter(r.BodyWriter())
 	}
 
-	if fieldName == "" {
-		// fieldname = "file" + strconv.Itoa(len(a.formFiles)+1) // TODO
-	}
-
 	content, err := ioutil.ReadFile(filepath.Clean(filePath))
 	if err != nil {
 		return err
+	}
+
+	if fieldName == "" { // default field name
+		fieldName = "file" + strconv.Itoa(r.formFilesNum+1)
 	}
 
 	w, err := r.mw.CreateFormFile(fieldName, filepath.Base(filePath))
@@ -169,6 +171,7 @@ func (r *Request) AddBodyFile(fieldName, filePath string) error {
 		return err
 	}
 
+	r.formFilesNum++
 	return nil
 }
 
@@ -227,7 +230,7 @@ func NewPostForm(kv ...string) *PostForm {
 }
 
 func (a *PostForm) BindRequest(req *Request) error {
-	req.SetBodyForm(a)
+	req.SetBodyPostForm(a)
 	fasthttp.ReleaseArgs(a.Args)
 	return nil
 }
@@ -264,4 +267,50 @@ type Timeout time.Duration
 
 func (t *Timeout) BindRequest(req *Request) {
 	req.SetTimeout(time.Duration(*t))
+}
+
+type MultipartForm struct {
+	*fasthttp.Args
+	Boundary string
+}
+
+func NewMultipartForm(boundary string, kv ...string) *MultipartForm {
+	f := &MultipartForm{
+		Boundary: boundary,
+		Args:     fasthttp.AcquireArgs(),
+	}
+
+	for i := 1; i < len(kv); i += 2 {
+		f.Add(kv[i-1], kv[i])
+	}
+
+	return f
+}
+
+func (a *MultipartForm) BindRequest(req *Request) error {
+	if err := req.SetBodyBoundary(a.Boundary); err != nil {
+		return err
+	}
+
+	var err error
+	if a.Args != nil {
+		a.Args.VisitAll(func(key, value []byte) {
+			if addErr := req.AddBodyField(unsafeB2S(key), unsafeB2S(value)); err != nil {
+				err = addErr
+				return
+			}
+		})
+	}
+	if err != nil {
+		return err
+	}
+
+	if err := req.mw.Close(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *MultipartForm) Release() {
+	fasthttp.ReleaseArgs(a.Args)
 }

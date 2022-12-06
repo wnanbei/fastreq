@@ -57,7 +57,6 @@ func Test_Request_Json_Body(t *testing.T) {
 	s := &fasthttp.Server{
 		Handler: func(ctx *fasthttp.RequestCtx) {
 			require.Equal(t, "{\"Param1\":100,\"Param2\":\"hello world\"}", string(ctx.Request.Body()))
-			ctx.Response.SetStatusCode(fasthttp.StatusOK)
 		},
 	}
 	go s.Serve(ln) //nolint:errcheck
@@ -84,7 +83,6 @@ func Test_Request_Body(t *testing.T) {
 	s := &fasthttp.Server{
 		Handler: func(ctx *fasthttp.RequestCtx) {
 			require.Equal(t, "hello world", string(ctx.Request.Body()))
-			ctx.Response.SetStatusCode(fasthttp.StatusOK)
 		},
 	}
 	go s.Serve(ln) //nolint:errcheck
@@ -98,6 +96,66 @@ func Test_Request_Body(t *testing.T) {
 		"http://fastreq.com",
 		NewBody([]byte("hello world")),
 	)
+	require.NoError(t, err)
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
+}
+
+func Test_Request_Multipart_Form(t *testing.T) {
+	t.Parallel()
+	boundary := "fastreq"
+
+	ln := fasthttputil.NewInmemoryListener()
+	s := &fasthttp.Server{
+		Handler: func(ctx *fasthttp.RequestCtx) {
+			require.Equal(t, "multipart/form-data; boundary="+boundary, string(ctx.Request.Header.ContentType()))
+			mf, err := ctx.Request.MultipartForm()
+			require.NoError(t, err)
+			require.Equal(t, "bar", mf.Value["foo"][0])
+		},
+	}
+	go s.Serve(ln) //nolint:errcheck
+
+	client := NewClient()
+	client.Dial = func(addr string) (net.Conn, error) {
+		return ln.Dial()
+	}
+
+	resp, err := client.Post(
+		"http://fastreq.com",
+		NewMultipartForm(
+			boundary,
+			"foo", "bar",
+		),
+	)
+	require.NoError(t, err)
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
+}
+
+func Test_Request_Multipart_Form_Files(t *testing.T) {
+	t.Parallel()
+	boundary := "fastreq"
+
+	ln := fasthttputil.NewInmemoryListener()
+	s := &fasthttp.Server{
+		Handler: func(ctx *fasthttp.RequestCtx) {
+			require.Equal(t, "multipart/form-data; boundary="+boundary, string(ctx.Request.Header.ContentType()))
+			mf, err := ctx.Request.MultipartForm()
+			require.NoError(t, err)
+			require.Equal(t, "bar", mf.Value["foo"][0])
+		},
+	}
+	go s.Serve(ln) //nolint:errcheck
+
+	client := NewClient()
+	client.Dial = func(addr string) (net.Conn, error) {
+		return ln.Dial()
+	}
+
+	req := NewRequest(GET, "http://fastreq.com")
+	req.SetBodyBoundary(boundary)
+	req.AddBodyFile("field1", "")
+
+	resp, err := client.Do(req)
 	require.NoError(t, err)
 	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
 }
