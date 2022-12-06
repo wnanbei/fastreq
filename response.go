@@ -23,28 +23,6 @@ func NewResponse() *Response {
 	}
 }
 
-func (r *Response) FileName() string {
-	disposition := r.Header.Peek("Content-Disposition")
-	if len(disposition) == 0 {
-		return ""
-	}
-
-	matches := regexp.MustCompile(`filename[^;=\n]*=(['"]*.*?['"]*)$`).FindSubmatch(disposition)
-	if len(matches) == 0 {
-		return ""
-	}
-	n := regexp.MustCompile(`['"]`).ReplaceAll(matches[1], []byte{})
-
-	un, err := url.QueryUnescape(unsafeB2S(n))
-	if err != nil {
-		return unsafeB2S(n)
-	}
-
-	return un
-}
-
-// ================================= Get Body ===================================
-
 func (r *Response) BodyString() string {
 	return unsafeB2S(r.Body())
 }
@@ -74,13 +52,31 @@ func (r *Response) JsonGetPartOf(path string, v interface{}) error {
 	return jsonUnmarshal(unsafeS2B(part.Raw), v)
 }
 
-// ================================= Get Body End ===============================
-
 func (r *Response) Copy() *Response {
 	resp := fasthttp.AcquireResponse()
 	r.CopyTo(resp)
 
 	return &Response{Response: resp}
+}
+
+func (r *Response) FileName() string {
+	disposition := r.Header.Peek("Content-Disposition")
+	if len(disposition) == 0 {
+		return ""
+	}
+
+	matches := regexp.MustCompile(`filename[^;=\n]*=(['"]*.*?['"]*)$`).FindSubmatch(disposition)
+	if len(matches) == 0 {
+		return ""
+	}
+	n := regexp.MustCompile(`['"]`).ReplaceAll(matches[1], []byte{})
+
+	un, err := url.QueryUnescape(unsafeB2S(n))
+	if err != nil {
+		return unsafeB2S(n)
+	}
+
+	return un
 }
 
 func (r *Response) SaveToFile(path, filename string) error {
@@ -107,5 +103,6 @@ func (r *Response) SaveToFile(path, filename string) error {
 }
 
 func (r *Response) Release() {
+	fasthttp.ReleaseRequest(r.Request)
 	fasthttp.ReleaseResponse(r.Response)
 }

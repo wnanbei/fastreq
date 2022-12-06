@@ -55,12 +55,3 @@ func TestSetEnvProxy(t *testing.T) {
 	}
 	Release(resp)
 }
-
-// func TestDownloadFile(t *testing.T) {
-// 	req := NewRequest(GET, "https://cf-markting-1256732272.cos.ap-shanghai.myqcloud.com/W00000012229/material/file/d7f0bf2c-01c6-449a-a291-e8cf5084fce6/h7icq706xp71650363280917.pdf")
-
-// 	err := DownloadFile(req, "./data", "")
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// }

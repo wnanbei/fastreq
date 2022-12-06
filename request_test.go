@@ -67,14 +67,12 @@ func Test_Request_Json_Body(t *testing.T) {
 		return ln.Dial()
 	}
 
-	body := NewJsonBody(
-		&testStruct{
-			Param1: 100,
-			Param2: "hello world",
-		},
-	)
+	body := &testStruct{
+		Param1: 100,
+		Param2: "hello world",
+	}
 
-	resp, err := client.Post("http://make.fasthttp.great", body)
+	resp, err := client.Post("http://fastreq.com", NewJsonBody(body))
 	require.NoError(t, err)
 	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
 }
@@ -97,7 +95,7 @@ func Test_Request_Body(t *testing.T) {
 	}
 
 	resp, err := client.Post(
-		"http://make.fasthttp.great",
+		"http://fastreq.com",
 		NewBody([]byte("hello world")),
 	)
 	require.NoError(t, err)
