@@ -120,13 +120,11 @@ func Test_Request_Multipart_Form(t *testing.T) {
 		return ln.Dial()
 	}
 
-	resp, err := client.Post(
-		"http://fastreq.com",
-		NewMultipartForm(
-			boundary,
-			"foo", "bar",
-		),
+	mf := NewMultipartForm(
+		boundary,
+		"foo", "bar",
 	)
+	resp, err := client.Post("http://fastreq.com", mf)
 	require.NoError(t, err)
 	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
 }
@@ -142,6 +140,23 @@ func Test_Request_Multipart_Form_Files(t *testing.T) {
 			mf, err := ctx.Request.MultipartForm()
 			require.NoError(t, err)
 			require.Equal(t, "bar", mf.Value["foo"][0])
+			require.Equal(t, "file1.txt", mf.File["txt"][0].Filename)
+
+			f, err := mf.File["txt"][0].Open()
+			require.NoError(t, err)
+			defer f.Close()
+			buf := make([]byte, mf.File["txt"][0].Size)
+			_, err = f.Read(buf)
+			require.NoError(t, err)
+			require.Equal(t, "fastreq", string(buf))
+
+			f2, err := mf.File["file2"][0].Open()
+			require.NoError(t, err)
+			defer f2.Close()
+			buf = make([]byte, mf.File["file2"][0].Size)
+			_, err = f2.Read(buf)
+			require.NoError(t, err)
+			require.Equal(t, "<p>fastreq</p>", string(buf))
 		},
 	}
 	go s.Serve(ln) //nolint:errcheck
@@ -152,8 +167,10 @@ func Test_Request_Multipart_Form_Files(t *testing.T) {
 	}
 
 	req := NewRequest(GET, "http://fastreq.com")
-	req.SetBodyBoundary(boundary)
-	req.AddBodyFile("field1", "")
+	req.SetBoundary(boundary)
+	req.AddMFField("foo", "bar")
+	req.AddMFFile("txt", ".github/testdata/file1.txt")
+	req.AddMFFile("", ".github/testdata/index.html")
 
 	resp, err := client.Do(req)
 	require.NoError(t, err)

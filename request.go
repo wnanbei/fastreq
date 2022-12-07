@@ -95,7 +95,7 @@ func (r *Request) SetCookie(key, value string) {
 	r.Header.SetCookie(key, value)
 }
 
-func (r *Request) SetBodyJSON(v interface{}) error {
+func (r *Request) SetJSON(v interface{}) error {
 	r.Header.SetContentType(MIMEApplicationJSON)
 
 	body, err := jsonMarshal(v)
@@ -107,7 +107,7 @@ func (r *Request) SetBodyJSON(v interface{}) error {
 	return nil
 }
 
-func (r *Request) SetBodyXML(v interface{}) error {
+func (r *Request) SetXML(v interface{}) error {
 	r.Header.SetContentType(MIMEApplicationXML)
 
 	body, err := xml.Marshal(v)
@@ -119,7 +119,7 @@ func (r *Request) SetBodyXML(v interface{}) error {
 	return nil
 }
 
-func (r *Request) SetBodyPostForm(form *PostForm) {
+func (r *Request) SetPostForm(form *PostForm) {
 	r.Header.SetContentType(MIMEApplicationForm)
 
 	if form != nil {
@@ -129,7 +129,7 @@ func (r *Request) SetBodyPostForm(form *PostForm) {
 	Release(form)
 }
 
-func (r *Request) SetBodyBoundary(boundary string) error {
+func (r *Request) SetBoundary(boundary string) error {
 	if r.mw == nil {
 		r.mw = multipart.NewWriter(r.BodyWriter())
 	}
@@ -137,7 +137,7 @@ func (r *Request) SetBodyBoundary(boundary string) error {
 	return r.mw.SetBoundary(boundary)
 }
 
-func (r *Request) AddBodyField(field, value string) error {
+func (r *Request) AddMFField(field, value string) error {
 	if r.mw == nil {
 		r.mw = multipart.NewWriter(r.BodyWriter())
 	}
@@ -149,7 +149,7 @@ func (r *Request) AddBodyField(field, value string) error {
 	return nil
 }
 
-func (r *Request) AddBodyFile(fieldName, filePath string) error {
+func (r *Request) AddMFFile(fieldName, filePath string) error {
 	if r.mw == nil {
 		r.mw = multipart.NewWriter(r.BodyWriter())
 	}
@@ -230,7 +230,7 @@ func NewPostForm(kv ...string) *PostForm {
 }
 
 func (a *PostForm) BindRequest(req *Request) error {
-	req.SetBodyPostForm(a)
+	req.SetPostForm(a)
 	fasthttp.ReleaseArgs(a.Args)
 	return nil
 }
@@ -260,7 +260,7 @@ func NewJsonBody(b interface{}) *JsonBody {
 }
 
 func (a *JsonBody) BindRequest(req *Request) error {
-	return req.SetBodyJSON(a.b)
+	return req.SetJSON(a.b)
 }
 
 type Timeout time.Duration
@@ -288,14 +288,14 @@ func NewMultipartForm(boundary string, kv ...string) *MultipartForm {
 }
 
 func (a *MultipartForm) BindRequest(req *Request) error {
-	if err := req.SetBodyBoundary(a.Boundary); err != nil {
+	if err := req.SetBoundary(a.Boundary); err != nil {
 		return err
 	}
 
 	var err error
 	if a.Args != nil {
 		a.Args.VisitAll(func(key, value []byte) {
-			if addErr := req.AddBodyField(unsafeB2S(key), unsafeB2S(value)); err != nil {
+			if addErr := req.AddMFField(unsafeB2S(key), unsafeB2S(value)); err != nil {
 				err = addErr
 				return
 			}
