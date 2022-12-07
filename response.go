@@ -103,6 +103,8 @@ func (r *Response) SaveToFile(path, filename string) error {
 }
 
 func (r *Response) Release() {
-	fasthttp.ReleaseRequest(r.Request)
+	if r.Request != nil {
+		fasthttp.ReleaseRequest(r.Request)
+	}
 	fasthttp.ReleaseResponse(r.Response)
 }
