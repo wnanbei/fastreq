@@ -32,6 +32,10 @@ func Delete(url string, opts ...ReqOption) (*Response, error) {
 	return defaultClient.Delete(url, opts...)
 }
 
+func Options(url string, opts ...ReqOption) (*Response, error) {
+	return defaultClient.Options(url, opts...)
+}
+
 func Connect(url string, opts ...ReqOption) (*Response, error) {
 	return defaultClient.Connect(url, opts...)
 }

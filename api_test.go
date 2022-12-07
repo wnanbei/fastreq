@@ -9,9 +9,7 @@ import (
 	"github.com/valyala/fasthttp/fasthttputil"
 )
 
-func TestGet(t *testing.T) {
-	t.Parallel()
-
+func Test_Method_Get(t *testing.T) {
 	ln := fasthttputil.NewInmemoryListener()
 	s := &fasthttp.Server{
 		Handler: func(ctx *fasthttp.RequestCtx) {
@@ -37,9 +35,7 @@ func TestGet(t *testing.T) {
 	Release(resp)
 }
 
-func TestPost(t *testing.T) {
-	t.Parallel()
-
+func Test_Method_Post(t *testing.T) {
 	ln := fasthttputil.NewInmemoryListener()
 	s := &fasthttp.Server{
 		Handler: func(ctx *fasthttp.RequestCtx) {
@@ -60,6 +56,156 @@ func TestPost(t *testing.T) {
 	formBody.Add("params", "2")
 
 	resp, err := Post("http://httpbin.org/post", formBody)
+	require.NoError(t, err)
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
+	Release(resp)
+}
+
+func Test_Method_Head(t *testing.T) {
+	t.Parallel()
+
+	ln := fasthttputil.NewInmemoryListener()
+	s := &fasthttp.Server{
+		Handler: func(ctx *fasthttp.RequestCtx) {
+			require.Equal(t, fasthttp.MethodHead, string(ctx.Request.Header.Method()))
+		},
+	}
+	go s.Serve(ln) //nolint:errcheck
+
+	client := NewClient()
+	client.Dial = func(addr string) (net.Conn, error) {
+		return ln.Dial()
+	}
+	SetDefaultClient(client)
+
+	resp, err := Head("http://httpbin.org/post")
+	require.NoError(t, err)
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
+	Release(resp)
+}
+
+func Test_Method_Put(t *testing.T) {
+	ln := fasthttputil.NewInmemoryListener()
+	s := &fasthttp.Server{
+		Handler: func(ctx *fasthttp.RequestCtx) {
+			require.Equal(t, fasthttp.MethodPut, string(ctx.Request.Header.Method()))
+		},
+	}
+	go s.Serve(ln) //nolint:errcheck
+
+	client := NewClient()
+	client.Dial = func(addr string) (net.Conn, error) {
+		return ln.Dial()
+	}
+	SetDefaultClient(client)
+
+	resp, err := Put("http://httpbin.org/post")
+	require.NoError(t, err)
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
+	Release(resp)
+}
+
+func Test_Method_Patch(t *testing.T) {
+	ln := fasthttputil.NewInmemoryListener()
+	s := &fasthttp.Server{
+		Handler: func(ctx *fasthttp.RequestCtx) {
+			require.Equal(t, fasthttp.MethodPatch, string(ctx.Request.Header.Method()))
+		},
+	}
+	go s.Serve(ln) //nolint:errcheck
+
+	client := NewClient()
+	client.Dial = func(addr string) (net.Conn, error) {
+		return ln.Dial()
+	}
+	SetDefaultClient(client)
+
+	resp, err := Patch("http://httpbin.org/post")
+	require.NoError(t, err)
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
+	Release(resp)
+}
+
+func Test_Method_Delete(t *testing.T) {
+	ln := fasthttputil.NewInmemoryListener()
+	s := &fasthttp.Server{
+		Handler: func(ctx *fasthttp.RequestCtx) {
+			require.Equal(t, fasthttp.MethodDelete, string(ctx.Request.Header.Method()))
+		},
+	}
+	go s.Serve(ln) //nolint:errcheck
+
+	client := NewClient()
+	client.Dial = func(addr string) (net.Conn, error) {
+		return ln.Dial()
+	}
+	SetDefaultClient(client)
+
+	resp, err := Delete("http://httpbin.org/post")
+	require.NoError(t, err)
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
+	Release(resp)
+}
+
+func Test_Method_Connect(t *testing.T) {
+	ln := fasthttputil.NewInmemoryListener()
+	s := &fasthttp.Server{
+		Handler: func(ctx *fasthttp.RequestCtx) {
+			require.Equal(t, fasthttp.MethodConnect, string(ctx.Request.Header.Method()))
+		},
+	}
+	go s.Serve(ln) //nolint:errcheck
+
+	client := NewClient()
+	client.Dial = func(addr string) (net.Conn, error) {
+		return ln.Dial()
+	}
+	SetDefaultClient(client)
+
+	resp, err := Connect("http://httpbin.org/post")
+	require.NoError(t, err)
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
+	Release(resp)
+}
+
+func Test_Method_Options(t *testing.T) {
+	ln := fasthttputil.NewInmemoryListener()
+	s := &fasthttp.Server{
+		Handler: func(ctx *fasthttp.RequestCtx) {
+			require.Equal(t, fasthttp.MethodOptions, string(ctx.Request.Header.Method()))
+		},
+	}
+	go s.Serve(ln) //nolint:errcheck
+
+	client := NewClient()
+	client.Dial = func(addr string) (net.Conn, error) {
+		return ln.Dial()
+	}
+	SetDefaultClient(client)
+
+	resp, err := Options("http://httpbin.org/post")
+	require.NoError(t, err)
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
+	Release(resp)
+}
+
+func Test_Method_Do(t *testing.T) {
+	ln := fasthttputil.NewInmemoryListener()
+	s := &fasthttp.Server{
+		Handler: func(ctx *fasthttp.RequestCtx) {
+			require.Equal(t, fasthttp.MethodOptions, string(ctx.Request.Header.Method()))
+		},
+	}
+	go s.Serve(ln) //nolint:errcheck
+
+	client := NewClient()
+	client.Dial = func(addr string) (net.Conn, error) {
+		return ln.Dial()
+	}
+	SetDefaultClient(client)
+
+	req := NewRequest(OPTIONS, "http://httpbin.org/post")
+	resp, err := Do(req)
 	require.NoError(t, err)
 	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
 	Release(resp)

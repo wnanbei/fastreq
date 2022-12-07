@@ -65,6 +65,11 @@ func (c *Client) Delete(url string, opts ...ReqOption) (*Response, error) {
 	return c.Do(req, opts...)
 }
 
+func (c *Client) Options(url string, opts ...ReqOption) (*Response, error) {
+	req := NewRequest(OPTIONS, url)
+	return c.Do(req, opts...)
+}
+
 func (c *Client) Connect(url string, opts ...ReqOption) (*Response, error) {
 	req := NewRequest(CONNECT, url)
 	return c.Do(req, opts...)

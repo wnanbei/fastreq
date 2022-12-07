@@ -51,8 +51,6 @@ type testStruct struct {
 }
 
 func Test_Request_Json_Body(t *testing.T) {
-	t.Parallel()
-
 	ln := fasthttputil.NewInmemoryListener()
 	s := &fasthttp.Server{
 		Handler: func(ctx *fasthttp.RequestCtx) {
@@ -77,8 +75,6 @@ func Test_Request_Json_Body(t *testing.T) {
 }
 
 func Test_Request_Body(t *testing.T) {
-	t.Parallel()
-
 	ln := fasthttputil.NewInmemoryListener()
 	s := &fasthttp.Server{
 		Handler: func(ctx *fasthttp.RequestCtx) {
@@ -101,7 +97,6 @@ func Test_Request_Body(t *testing.T) {
 }
 
 func Test_Request_Multipart_Form(t *testing.T) {
-	t.Parallel()
 	boundary := "fastreq"
 
 	ln := fasthttputil.NewInmemoryListener()
@@ -130,7 +125,6 @@ func Test_Request_Multipart_Form(t *testing.T) {
 }
 
 func Test_Request_Multipart_Form_Files(t *testing.T) {
-	t.Parallel()
 	boundary := "fastreq"
 
 	ln := fasthttputil.NewInmemoryListener()

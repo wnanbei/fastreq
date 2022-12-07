@@ -10,8 +10,6 @@ import (
 )
 
 func TestClientGet(t *testing.T) {
-	t.Parallel()
-
 	ln := fasthttputil.NewInmemoryListener()
 	s := &fasthttp.Server{
 		Handler: func(ctx *fasthttp.RequestCtx) {
@@ -36,8 +34,6 @@ func TestClientGet(t *testing.T) {
 }
 
 func TestClientPost(t *testing.T) {
-	t.Parallel()
-
 	ln := fasthttputil.NewInmemoryListener()
 	s := &fasthttp.Server{
 		Handler: func(ctx *fasthttp.RequestCtx) {
