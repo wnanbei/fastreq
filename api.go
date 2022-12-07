@@ -4,6 +4,10 @@ import jsoniter "github.com/json-iterator/go"
 
 var defaultClient = NewClient()
 
+func SetDefaultClient(client *Client) {
+	defaultClient = client
+}
+
 func Get(url string, opts ...ReqOption) (*Response, error) {
 	return defaultClient.Get(url, opts...)
 }
