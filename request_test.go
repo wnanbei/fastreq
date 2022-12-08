@@ -3,6 +3,7 @@ package fastreq
 import (
 	"net"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
@@ -169,4 +170,23 @@ func Test_Request_Multipart_Form_Files(t *testing.T) {
 	resp, err := client.Do(req)
 	require.NoError(t, err)
 	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
+}
+
+func Test_RequestOption_AutoRelease(t *testing.T) {
+	params := NewQueryParams("hello", "world")
+	form := NewPostForm("hello", "world")
+	body := NewBody([]byte("hello world"))
+	jsonBody := NewJsonBody(map[string]string{"hello": "world"})
+	mf := NewMultipartForm("fastreq", "hello", "world")
+	timeout := NewTimeout(time.Second)
+
+	NewRequest(GET, "", params, form, body, jsonBody, mf, timeout)
+
+	require.Nil(t, params.Args)
+	require.Nil(t, form.Args)
+	require.Empty(t, body.body)
+	require.Empty(t, jsonBody.body)
+	require.Empty(t, mf.Boundary)
+	require.Nil(t, mf.Args)
+	require.Zero(t, timeout.timeout)
 }
