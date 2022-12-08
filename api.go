@@ -68,16 +68,6 @@ func SetDebugLevel(lvl DebugLevel) {
 	defaultClient.SetDebugLevel(lvl)
 }
 
-type Releaser interface {
-	Release()
-}
-
-func Release(releasers ...Releaser) {
-	for _, r := range releasers {
-		r.Release()
-	}
-}
-
 var jsonMarshal = jsoniter.ConfigCompatibleWithStandardLibrary.Marshal
 var jsonUnmarshal = jsoniter.ConfigCompatibleWithStandardLibrary.Unmarshal
 

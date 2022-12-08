@@ -52,3 +52,13 @@ const (
 
 // debugLimit limit length of debug logging output
 const debugLimit = 10000
+
+type Releaser interface {
+	Release()
+}
+
+func Release(releasers ...Releaser) {
+	for _, r := range releasers {
+		r.Release()
+	}
+}

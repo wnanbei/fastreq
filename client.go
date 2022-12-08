@@ -93,6 +93,9 @@ func (c *Client) DownloadFile(req *Request, path, filename string) error {
 func (c *Client) Do(req *Request, opts ...ReqOption) (*Response, error) {
 	for _, opt := range opts {
 		opt.BindRequest(req)
+		if opt.isAutoRelease() {
+			Release(opt)
+		}
 	}
 
 	return c.do(req)

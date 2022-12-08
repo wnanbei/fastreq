@@ -25,6 +25,9 @@ func NewRequest(method HTTPMethod, url string, opts ...ReqOption) *Request {
 
 	for _, opt := range opts {
 		opt.BindRequest(req)
+		if opt.isAutoRelease() {
+			Release(opt)
+		}
 	}
 
 	return req
@@ -125,8 +128,6 @@ func (r *Request) SetPostForm(form *PostForm) {
 	if form != nil {
 		r.SetBody(form.QueryString())
 	}
-
-	Release(form)
 }
 
 func (r *Request) SetBoundary(boundary string) error {
@@ -188,15 +189,19 @@ func (r *Request) Release() {
 }
 
 type ReqOption interface {
+	Releaser
 	BindRequest(req *Request) error
+	AutoRelease(bool)
+	isAutoRelease() bool
 }
 
 type QueryParams struct {
 	*fasthttp.Args
+	notAutoRelease bool
 }
 
 func NewQueryParams(kv ...string) *QueryParams {
-	q := &QueryParams{fasthttp.AcquireArgs()}
+	q := &QueryParams{Args: fasthttp.AcquireArgs()}
 
 	for i := 1; i < len(kv); i += 2 {
 		q.Add(kv[i-1], kv[i])
@@ -205,22 +210,32 @@ func NewQueryParams(kv ...string) *QueryParams {
 	return q
 }
 
-func (o *QueryParams) BindRequest(req *Request) error {
-	req.Request.URI().SetQueryStringBytes(o.Args.QueryString())
-	fasthttp.ReleaseArgs(o.Args)
+func (q *QueryParams) BindRequest(req *Request) error {
+	req.Request.URI().SetQueryStringBytes(q.Args.QueryString())
 	return nil
 }
 
-func (a *QueryParams) Release() {
-	fasthttp.ReleaseArgs(a.Args)
+func (q *QueryParams) Release() {
+	fasthttp.ReleaseArgs(q.Args)
+	q.Args = nil
+	q.notAutoRelease = false
+}
+
+func (q *QueryParams) AutoRelease(auto bool) {
+	q.notAutoRelease = !auto
+}
+
+func (q *QueryParams) isAutoRelease() bool {
+	return !q.notAutoRelease
 }
 
 type PostForm struct {
 	*fasthttp.Args
+	notAutoRelease bool
 }
 
 func NewPostForm(kv ...string) *PostForm {
-	f := &PostForm{fasthttp.AcquireArgs()}
+	f := &PostForm{Args: fasthttp.AcquireArgs()}
 
 	for i := 1; i < len(kv); i += 2 {
 		f.Add(kv[i-1], kv[i])
@@ -229,49 +244,110 @@ func NewPostForm(kv ...string) *PostForm {
 	return f
 }
 
-func (a *PostForm) BindRequest(req *Request) error {
-	req.SetPostForm(a)
-	fasthttp.ReleaseArgs(a.Args)
+func (f *PostForm) BindRequest(req *Request) error {
+	req.SetPostForm(f)
 	return nil
 }
 
-func (a *PostForm) Release() {
-	fasthttp.ReleaseArgs(a.Args)
+func (f *PostForm) Release() {
+	fasthttp.ReleaseArgs(f.Args)
+	f.Args = nil
+	f.notAutoRelease = false
 }
 
-type Body []byte
+func (f *PostForm) AutoRelease(auto bool) {
+	f.notAutoRelease = !auto
+}
+
+func (f *PostForm) isAutoRelease() bool {
+	return !f.notAutoRelease
+}
+
+type Body struct {
+	body           []byte
+	notAutoRelease bool
+}
 
 func NewBody(b []byte) *Body {
-	body := Body(b)
+	body := Body{body: b}
 	return &body
 }
 
-func (a *Body) BindRequest(req *Request) error {
-	req.SetBody(*a)
+func (b *Body) BindRequest(req *Request) error {
+	req.SetBody(b.body)
 	return nil
 }
 
+func (b *Body) Release() {
+	b.body = nil
+	b.notAutoRelease = false
+}
+
+func (b *Body) AutoRelease(auto bool) {
+	b.notAutoRelease = !auto
+}
+
+func (b *Body) isAutoRelease() bool {
+	return !b.notAutoRelease
+}
+
 type JsonBody struct {
-	b interface{}
+	body           interface{}
+	notAutoRelease bool
 }
 
 func NewJsonBody(b interface{}) *JsonBody {
-	return &JsonBody{b: b}
+	return &JsonBody{body: b}
 }
 
-func (a *JsonBody) BindRequest(req *Request) error {
-	return req.SetJSON(a.b)
+func (b *JsonBody) BindRequest(req *Request) error {
+	return req.SetJSON(b.body)
 }
 
-type Timeout time.Duration
+func (b *JsonBody) Release() {
+	b.body = nil
+	b.notAutoRelease = false
+}
 
-func (t *Timeout) BindRequest(req *Request) {
-	req.SetTimeout(time.Duration(*t))
+func (b *JsonBody) AutoRelease(auto bool) {
+	b.notAutoRelease = !auto
+}
+
+func (b *JsonBody) isAutoRelease() bool {
+	return !b.notAutoRelease
+}
+
+type Timeout struct {
+	timeout        *time.Duration
+	notAutoRelease bool
+}
+
+func NewTimeout(t time.Duration) *Timeout {
+	return &Timeout{timeout: &t}
+}
+
+func (t *Timeout) BindRequest(req *Request) error {
+	req.SetTimeout(time.Duration(*t.timeout))
+	return nil
+}
+
+func (t *Timeout) Release() {
+	t.timeout = nil
+	t.notAutoRelease = false
+}
+
+func (t *Timeout) AutoRelease(auto bool) {
+	t.notAutoRelease = !auto
+}
+
+func (t *Timeout) isAutoRelease() bool {
+	return !t.notAutoRelease
 }
 
 type MultipartForm struct {
 	*fasthttp.Args
-	Boundary string
+	Boundary       string
+	notAutoRelease bool
 }
 
 func NewMultipartForm(boundary string, kv ...string) *MultipartForm {
@@ -287,14 +363,14 @@ func NewMultipartForm(boundary string, kv ...string) *MultipartForm {
 	return f
 }
 
-func (a *MultipartForm) BindRequest(req *Request) error {
-	if err := req.SetBoundary(a.Boundary); err != nil {
+func (mf *MultipartForm) BindRequest(req *Request) error {
+	if err := req.SetBoundary(mf.Boundary); err != nil {
 		return err
 	}
 
 	var err error
-	if a.Args != nil {
-		a.Args.VisitAll(func(key, value []byte) {
+	if mf.Args != nil {
+		mf.Args.VisitAll(func(key, value []byte) {
 			if addErr := req.AddMFField(unsafeB2S(key), unsafeB2S(value)); err != nil {
 				err = addErr
 				return
@@ -311,6 +387,17 @@ func (a *MultipartForm) BindRequest(req *Request) error {
 	return nil
 }
 
-func (a *MultipartForm) Release() {
-	fasthttp.ReleaseArgs(a.Args)
+func (mf *MultipartForm) Release() {
+	fasthttp.ReleaseArgs(mf.Args)
+	mf.Args = nil
+	mf.notAutoRelease = false
+	mf.Boundary = ""
+}
+
+func (mf *MultipartForm) AutoRelease(auto bool) {
+	mf.notAutoRelease = !auto
+}
+
+func (mf *MultipartForm) isAutoRelease() bool {
+	return !mf.notAutoRelease
 }
