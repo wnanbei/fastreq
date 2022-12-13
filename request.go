@@ -2,8 +2,8 @@ package fastreq
 
 import (
 	"encoding/xml"
-	"io/ioutil"
 	"mime/multipart"
+	"os"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -18,18 +18,10 @@ type Request struct {
 	formFilesNum int
 }
 
-func NewRequest(method HTTPMethod, url string, opts ...ReqOption) *Request {
+func NewRequest(method HTTPMethod, url string) *Request {
 	req := &Request{Request: fasthttp.AcquireRequest()}
 	req.SetMethod(method)
 	req.SetRequestURI(url)
-
-	for _, opt := range opts {
-		opt.BindRequest(req)
-		if opt.isAutoRelease() {
-			Release(opt)
-		}
-	}
-
 	return req
 }
 
@@ -155,7 +147,7 @@ func (r *Request) AddMFFile(fieldName, filePath string) error {
 		r.mw = multipart.NewWriter(r.BodyWriter())
 	}
 
-	content, err := ioutil.ReadFile(filepath.Clean(filePath))
+	content, err := os.ReadFile(filepath.Clean(filePath))
 	if err != nil {
 		return err
 	}
@@ -327,7 +319,7 @@ func NewTimeout(t time.Duration) *Timeout {
 }
 
 func (t *Timeout) BindRequest(req *Request) error {
-	req.SetTimeout(time.Duration(*t.timeout))
+	req.SetTimeout(*t.timeout)
 	return nil
 }
 

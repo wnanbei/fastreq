@@ -25,7 +25,10 @@ func BenchmarkJson(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		var v map[string]interface{}
-		resp.Json(v)
+		err := resp.Json(v)
+		if err != nil {
+			b.FailNow()
+		}
 	}
 }
 
@@ -37,7 +40,10 @@ func BenchmarkJsoniter(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		var v map[string]interface{}
-		resp.Json(v)
+		err := resp.Json(v)
+		if err != nil {
+			b.FailNow()
+		}
 	}
 }
 
@@ -48,7 +54,10 @@ func BenchmarkJsonGetPartOf(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		var v map[string]interface{}
-		resp.JsonGetPartOf("friends.0", v)
+		err := resp.JsonGetPartOf("friends.0", v)
+		if err != nil {
+			b.FailNow()
+		}
 	}
 }
 

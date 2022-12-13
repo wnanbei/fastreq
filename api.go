@@ -78,7 +78,7 @@ func SetJsonMarshal(f func(any) ([]byte, error)) {
 }
 
 // SetJsonUnmarshal can set json unmarshal function.
-// Default Unarshal is github.com/json-iterator/go
+// Default Unmarshal is github.com/json-iterator/go
 func SetJsonUnmarshal(f func([]byte, any) error) {
 	jsonUnmarshal = f
 }

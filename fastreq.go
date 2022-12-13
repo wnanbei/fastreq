@@ -3,7 +3,7 @@ package fastreq
 import "time"
 
 // Version of fastreq
-const Version = "0.2.1"
+const Version = "0.3.1"
 
 const defaultUserAgent = "fastreq@" + Version
 

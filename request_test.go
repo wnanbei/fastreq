@@ -1,6 +1,7 @@
 package fastreq
 
 import (
+	"mime/multipart"
 	"net"
 	"testing"
 	"time"
@@ -58,7 +59,12 @@ func Test_Request_Json_Body(t *testing.T) {
 			require.Equal(t, "{\"Param1\":100,\"Param2\":\"hello world\"}", string(ctx.Request.Body()))
 		},
 	}
-	go s.Serve(ln) //nolint:errcheck
+	go func() {
+		err := s.Serve(ln)
+		if err != nil {
+			return
+		}
+	}()
 
 	client := NewClient()
 	client.Dial = func(addr string) (net.Conn, error) {
@@ -70,7 +76,7 @@ func Test_Request_Json_Body(t *testing.T) {
 		Param2: "hello world",
 	}
 
-	resp, err := client.Post("http://fastreq.com", NewJsonBody(body))
+	resp, err := client.Post("http://make.fasthttp.great", NewJsonBody(body))
 	require.NoError(t, err)
 	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
 }
@@ -82,7 +88,12 @@ func Test_Request_Body(t *testing.T) {
 			require.Equal(t, "hello world", string(ctx.Request.Body()))
 		},
 	}
-	go s.Serve(ln) //nolint:errcheck
+	go func() {
+		err := s.Serve(ln)
+		if err != nil {
+			return
+		}
+	}()
 
 	client := NewClient()
 	client.Dial = func(addr string) (net.Conn, error) {
@@ -90,7 +101,7 @@ func Test_Request_Body(t *testing.T) {
 	}
 
 	resp, err := client.Post(
-		"http://fastreq.com",
+		"http://make.fasthttp.great",
 		NewBody([]byte("hello world")),
 	)
 	require.NoError(t, err)
@@ -109,7 +120,12 @@ func Test_Request_Multipart_Form(t *testing.T) {
 			require.Equal(t, "bar", mf.Value["foo"][0])
 		},
 	}
-	go s.Serve(ln) //nolint:errcheck
+	go func() {
+		err := s.Serve(ln)
+		if err != nil {
+			return
+		}
+	}()
 
 	client := NewClient()
 	client.Dial = func(addr string) (net.Conn, error) {
@@ -120,7 +136,7 @@ func Test_Request_Multipart_Form(t *testing.T) {
 		boundary,
 		"foo", "bar",
 	)
-	resp, err := client.Post("http://fastreq.com", mf)
+	resp, err := client.Post("http://make.fasthttp.great", mf)
 	require.NoError(t, err)
 	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
 }
@@ -139,7 +155,12 @@ func Test_Request_Multipart_Form_Files(t *testing.T) {
 
 			f, err := mf.File["txt"][0].Open()
 			require.NoError(t, err)
-			defer f.Close()
+			defer func(f multipart.File) {
+				err := f.Close()
+				if err != nil {
+					t.FailNow()
+				}
+			}(f)
 			buf := make([]byte, mf.File["txt"][0].Size)
 			_, err = f.Read(buf)
 			require.NoError(t, err)
@@ -147,25 +168,39 @@ func Test_Request_Multipart_Form_Files(t *testing.T) {
 
 			f2, err := mf.File["file2"][0].Open()
 			require.NoError(t, err)
-			defer f2.Close()
+			defer func(f2 multipart.File) {
+				err := f2.Close()
+				if err != nil {
+					t.FailNow()
+				}
+			}(f2)
 			buf = make([]byte, mf.File["file2"][0].Size)
 			_, err = f2.Read(buf)
 			require.NoError(t, err)
 			require.Equal(t, "<p>fastreq</p>", string(buf))
 		},
 	}
-	go s.Serve(ln) //nolint:errcheck
+	go func() {
+		err := s.Serve(ln)
+		if err != nil {
+			return
+		}
+	}()
 
 	client := NewClient()
 	client.Dial = func(addr string) (net.Conn, error) {
 		return ln.Dial()
 	}
 
-	req := NewRequest(GET, "http://fastreq.com")
-	req.SetBoundary(boundary)
-	req.AddMFField("foo", "bar")
-	req.AddMFFile("txt", ".github/testdata/file1.txt")
-	req.AddMFFile("", ".github/testdata/index.html")
+	req := NewRequest(GET, "http://make.fasthttp.great")
+	err := req.SetBoundary(boundary)
+	require.NoError(t, err)
+	err = req.AddMFField("foo", "bar")
+	require.NoError(t, err)
+	err = req.AddMFFile("txt", ".github/testdata/file1.txt")
+	require.NoError(t, err)
+	err = req.AddMFFile("", ".github/testdata/index.html")
+	require.NoError(t, err)
 
 	resp, err := client.Do(req)
 	require.NoError(t, err)
@@ -173,6 +208,24 @@ func Test_Request_Multipart_Form_Files(t *testing.T) {
 }
 
 func Test_RequestOption_AutoRelease(t *testing.T) {
+	ln := fasthttputil.NewInmemoryListener()
+	s := &fasthttp.Server{
+		Handler: func(ctx *fasthttp.RequestCtx) {
+			require.Equal(t, fasthttp.MethodGet, string(ctx.Request.Header.Method()))
+		},
+	}
+	go func() {
+		err := s.Serve(ln)
+		if err != nil {
+			return
+		}
+	}()
+
+	client := NewClient()
+	client.Dial = func(addr string) (net.Conn, error) {
+		return ln.Dial()
+	}
+
 	params := NewQueryParams("hello", "world")
 	form := NewPostForm("hello", "world")
 	body := NewBody([]byte("hello world"))
@@ -180,7 +233,10 @@ func Test_RequestOption_AutoRelease(t *testing.T) {
 	mf := NewMultipartForm("fastreq", "hello", "world")
 	timeout := NewTimeout(time.Second)
 
-	NewRequest(GET, "", params, form, body, jsonBody, mf, timeout)
+	req := NewRequest(GET, "http://make.fasthttp.great")
+	resp, err := client.Do(req, params, form, body, jsonBody, mf, timeout)
+	require.NoError(t, err)
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
 
 	require.Nil(t, params.Args)
 	require.Nil(t, form.Args)

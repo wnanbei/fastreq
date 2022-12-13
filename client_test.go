@@ -17,7 +17,12 @@ func TestClientGet(t *testing.T) {
 			require.Equal(t, "hello=world&params=2", string(ctx.Request.URI().QueryString()))
 		},
 	}
-	go s.Serve(ln) //nolint:errcheck
+	go func() {
+		err := s.Serve(ln)
+		if err != nil {
+			return
+		}
+	}()
 
 	client := NewClient()
 	client.Dial = func(addr string) (net.Conn, error) {
@@ -41,7 +46,12 @@ func TestClientPost(t *testing.T) {
 			require.Equal(t, "hello=world&params=2", string(ctx.Request.Body()))
 		},
 	}
-	go s.Serve(ln) //nolint:errcheck
+	go func() {
+		err := s.Serve(ln)
+		if err != nil {
+			return
+		}
+	}()
 
 	client := NewClient()
 	client.Dial = func(addr string) (net.Conn, error) {

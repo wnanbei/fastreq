@@ -35,7 +35,7 @@ func (o Oauth1) GenHeader(req *Request) []byte {
 	})
 
 	signature := o.signature(req, args)
-	return o.header(req, args, signature)
+	return o.header(args, signature)
 }
 
 func (o Oauth1) signature(req *Request, args *fasthttp.Args) []byte {
@@ -67,7 +67,7 @@ func (o Oauth1) signature(req *Request, args *fasthttp.Args) []byte {
 	return encodedSignature
 }
 
-func (o Oauth1) header(req *Request, args *fasthttp.Args, signature []byte) []byte {
+func (o Oauth1) header(args *fasthttp.Args, signature []byte) []byte {
 	header := bytes.NewBuffer([]byte(`OAuth oauth_consumer_key="`))
 	header.WriteString(url.QueryEscape(unsafeB2S(args.Peek("oauth_consumer_key"))))
 	header.WriteString(`", oauth_nonce="`)
