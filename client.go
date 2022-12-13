@@ -12,7 +12,7 @@ import (
 // Client ...
 type Client struct {
 	*fasthttp.Client
-	userAgent         string
+	defaultUserAgent  []byte
 	maxRedirectsCount int
 	timeout           time.Duration
 	debugLevel        DebugLevel
@@ -23,8 +23,9 @@ type Client struct {
 // NewClient ...
 func NewClient() *Client {
 	return &Client{
-		Client:      &fasthttp.Client{},
-		middlewares: []Middleware{},
+		Client:           &fasthttp.Client{},
+		middlewares:      []Middleware{},
+		defaultUserAgent: unsafeS2B(defaultUserAgent),
 	}
 }
 
@@ -76,7 +77,7 @@ func (c *Client) Connect(url string, opts ...ReqOption) (*Response, error) {
 }
 
 func (c *Client) DownloadFile(req *Request, path, filename string) error {
-	resp, err := c.do(req)
+	resp, err := c.Do(req)
 	if err != nil {
 		return err
 	}
@@ -100,10 +101,9 @@ func (c *Client) Do(req *Request, opts ...ReqOption) (*Response, error) {
 		}
 	}
 
-	return c.do(req)
-}
-
-func (c *Client) do(req *Request) (*Response, error) {
+	if len(req.Header.UserAgent()) == 0 {
+		req.Header.SetUserAgentBytes(c.defaultUserAgent)
+	}
 	ctx := NewCtx()
 	ctx.Request = req
 	ctx.client = c
@@ -160,8 +160,8 @@ func (c *Client) SetTimeout(timeout time.Duration) {
 	c.timeout = timeout
 }
 
-func (c *Client) SetUserAgent(userAgent string) {
-	c.userAgent = userAgent
+func (c *Client) SetDefaultUserAgent(userAgent string) {
+	c.defaultUserAgent = unsafeS2B(userAgent)
 }
 
 func (c *Client) SetDebugLevel(lvl DebugLevel) {

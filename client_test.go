@@ -66,3 +66,45 @@ func TestClientPost(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
 }
+
+func TestClientDefaultUserAgent(t *testing.T) {
+	ln := fasthttputil.NewInmemoryListener()
+	s := &fasthttp.Server{
+		Handler: func(ctx *fasthttp.RequestCtx) {
+			_, err := ctx.Write(ctx.Request.Header.UserAgent())
+			require.NoError(t, err)
+		},
+	}
+	go func() {
+		err := s.Serve(ln)
+		if err != nil {
+			return
+		}
+	}()
+
+	client := NewClient()
+	client.Dial = func(addr string) (net.Conn, error) {
+		return ln.Dial()
+	}
+
+	resp, err := client.Get("http://make.fasthttp.great")
+	require.NoError(t, err)
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
+	require.Equal(t, defaultUserAgent, resp.BodyString())
+
+	resp, err = client.Get("http://make.fasthttp.great", NewHeaders("user-agent", "111"))
+	require.NoError(t, err)
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
+	require.Equal(t, "111", resp.BodyString())
+
+	client.SetDefaultUserAgent("hello world")
+	resp, err = client.Get("http://make.fasthttp.great")
+	require.NoError(t, err)
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
+	require.Equal(t, "hello world", resp.BodyString())
+
+	resp, err = client.Get("http://make.fasthttp.great", NewHeaders("user-agent", "222"))
+	require.NoError(t, err)
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
+	require.Equal(t, "222", resp.BodyString())
+}
