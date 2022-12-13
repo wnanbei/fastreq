@@ -53,7 +53,7 @@ func (c *Ctx) fastResponse() *fasthttp.Response {
 
 var ctxPool sync.Pool
 
-func AcquireCtx() *Ctx {
+func NewCtx() *Ctx {
 	v := ctxPool.Get()
 	if v == nil {
 		return &Ctx{}

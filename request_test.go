@@ -246,3 +246,30 @@ func Test_RequestOption_AutoRelease(t *testing.T) {
 	require.Nil(t, mf.Args)
 	require.Zero(t, timeout.timeout)
 }
+
+func Test_Request_Headers(t *testing.T) {
+	ln := fasthttputil.NewInmemoryListener()
+	s := &fasthttp.Server{
+		Handler: func(ctx *fasthttp.RequestCtx) {
+			require.Equal(t, "fastreq", string(ctx.Request.Header.Peek("Hello")))
+			require.Equal(t, "111", string(ctx.Request.Header.ContentType()))
+		},
+	}
+	go func() {
+		err := s.Serve(ln)
+		if err != nil {
+			return
+		}
+	}()
+
+	client := NewClient()
+	client.Dial = func(addr string) (net.Conn, error) {
+		return ln.Dial()
+	}
+
+	headers := NewHeaders("Content-Type", "111")
+	headers.Add("Hello", "fastreq")
+	resp, err := client.Post("http://make.fasthttp.great", headers)
+	require.NoError(t, err)
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
+}

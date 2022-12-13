@@ -104,7 +104,7 @@ func (c *Client) Do(req *Request, opts ...ReqOption) (*Response, error) {
 }
 
 func (c *Client) do(req *Request) (*Response, error) {
-	ctx := AcquireCtx()
+	ctx := NewCtx()
 	ctx.Request = req
 	ctx.client = c
 
