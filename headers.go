@@ -1,8 +1,9 @@
 package fastreq
 
 import (
-	"github.com/valyala/fasthttp"
 	"sync"
+
+	"github.com/valyala/fasthttp"
 )
 
 var headersPool sync.Pool

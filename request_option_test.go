@@ -232,3 +232,28 @@ func Test_Request_Headers(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
 }
+
+func Test_Request_Cookies(t *testing.T) {
+	ln := fasthttputil.NewInmemoryListener()
+	s := &fasthttp.Server{
+		Handler: func(ctx *fasthttp.RequestCtx) {
+			require.Equal(t, "fastreq", string(ctx.Request.Header.Cookie("name")))
+		},
+	}
+	go func() {
+		err := s.Serve(ln)
+		if err != nil {
+			return
+		}
+	}()
+
+	client := NewClient()
+	client.Dial = func(addr string) (net.Conn, error) {
+		return ln.Dial()
+	}
+
+	cookies := NewCookies("name", "fastreq")
+	resp, err := client.Post("http://make.fasthttp.great", cookies)
+	require.NoError(t, err)
+	require.Equal(t, fasthttp.StatusOK, resp.StatusCode())
+}

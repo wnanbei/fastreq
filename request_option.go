@@ -220,7 +220,8 @@ func (mf *MultipartForm) isAutoRelease() bool {
 }
 
 type Cookies struct {
-	cookies []*fasthttp.Cookie
+	cookies        []*fasthttp.Cookie
+	notAutoRelease bool
 }
 
 func NewCookies(kv ...string) *Cookies {
@@ -248,4 +249,12 @@ func (c *Cookies) Release() {
 		fasthttp.ReleaseCookie(c.cookies[i])
 	}
 	c.cookies = c.cookies[:0]
+}
+
+func (c *Cookies) AutoRelease(auto bool) {
+	c.notAutoRelease = !auto
+}
+
+func (c *Cookies) isAutoRelease() bool {
+	return !c.notAutoRelease
 }

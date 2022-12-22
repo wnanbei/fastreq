@@ -2,11 +2,12 @@ package fastreq
 
 import (
 	"encoding/xml"
-	"github.com/valyala/fasthttp"
 	"mime/multipart"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/valyala/fasthttp"
 )
 
 // Request ...
