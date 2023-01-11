@@ -2,11 +2,13 @@ package fastreq
 
 import (
 	"bufio"
+	"bytes"
 	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/tidwall/gjson"
 	"github.com/valyala/fasthttp"
 )
@@ -15,6 +17,7 @@ import (
 type Response struct {
 	*fasthttp.Response
 	Request *fasthttp.Request
+	Dom     *goquery.Document
 }
 
 func NewResponse() *Response {
@@ -50,6 +53,17 @@ func (r *Response) JsonGetPartOf(path string, v interface{}) error {
 		return nil
 	}
 	return jsonUnmarshal(unsafeS2B(part.Raw), v)
+}
+
+func (r *Response) BuildDom() error {
+	if r.Dom == nil {
+		doc, err := goquery.NewDocumentFromReader(bytes.NewReader(r.Body()))
+		if err != nil {
+			return err
+		}
+		r.Dom = doc
+	}
+	return nil
 }
 
 func (r *Response) Copy() *Response {
