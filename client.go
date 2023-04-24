@@ -9,6 +9,28 @@ import (
 	"github.com/valyala/fasthttp/fasthttpproxy"
 )
 
+var defaultClientConfig = &ClientConfig{
+	Timeout:           time.Second * 30,
+	DebugLevel:        DebugClose,
+	MaxRedirectsCount: 10,
+	DefaultUserAgent:  defaultUserAgent,
+}
+
+// ClientConfig Client Config
+type ClientConfig struct {
+	// Timeout global timeout
+	Timeout time.Duration
+
+	// DebugLevel ...
+	DebugLevel DebugLevel
+
+	// MaxRedirectsCount ...
+	MaxRedirectsCount int
+
+	// DefaultUserAgent ...
+	DefaultUserAgent string
+}
+
 // Client ...
 type Client struct {
 	*fasthttp.Client
@@ -21,18 +43,40 @@ type Client struct {
 }
 
 // NewClient ...
-func NewClient() *Client {
-	return &Client{
-		Client:           &fasthttp.Client{},
-		middlewares:      []Middleware{},
-		defaultUserAgent: unsafeS2B(defaultUserAgent),
+func NewClient(config ...*ClientConfig) *Client {
+	realConfig := defaultClientConfig // if config is empty, use default client config
+	if len(config) > 0 {
+		realConfig = config[0]
 	}
-}
 
-// NewClientFromFastHTTP ...
-func NewClientFromFastHTTP(client *fasthttp.Client) *Client {
 	return &Client{
-		Client: client,
+		Client: &fasthttp.Client{
+			Name:                          "",
+			NoDefaultUserAgentHeader:      false,
+			Dial:                          nil,
+			DialDualStack:                 false,
+			TLSConfig:                     nil,
+			MaxConnsPerHost:               0,
+			MaxIdleConnDuration:           0,
+			MaxConnDuration:               0,
+			MaxIdemponentCallAttempts:     0,
+			ReadBufferSize:                0,
+			WriteBufferSize:               0,
+			ReadTimeout:                   0,
+			WriteTimeout:                  0,
+			MaxResponseBodySize:           0,
+			DisableHeaderNamesNormalizing: false,
+			DisablePathNormalizing:        false,
+			MaxConnWaitTimeout:            0,
+			RetryIf:                       nil,
+			ConnPoolStrategy:              0,
+			ConfigureClient:               nil,
+		},
+		middlewares:       []Middleware{},
+		timeout:           realConfig.Timeout,
+		debugLevel:        realConfig.DebugLevel,
+		maxRedirectsCount: realConfig.MaxRedirectsCount,
+		defaultUserAgent:  unsafeS2B(realConfig.DefaultUserAgent),
 	}
 }
 

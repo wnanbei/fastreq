@@ -2,7 +2,7 @@ package fastreq
 
 import jsoniter "github.com/json-iterator/go"
 
-var defaultClient = NewClient()
+var defaultClient = NewClient(defaultClientConfig)
 
 func SetDefaultClient(client *Client) {
 	defaultClient = client
