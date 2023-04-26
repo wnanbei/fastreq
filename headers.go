@@ -8,11 +8,13 @@ import (
 
 var headersPool sync.Pool
 
+// Headers is a wrapper for fasthttp.RequestHeader
 type Headers struct {
 	headers        fasthttp.RequestHeader
 	notAutoRelease bool
 }
 
+// NewHeaders creates a new Headers
 func NewHeaders(kv ...string) *Headers {
 	var h *Headers
 	v := headersPool.Get()
@@ -29,6 +31,7 @@ func NewHeaders(kv ...string) *Headers {
 	return h
 }
 
+// BindRequest binds the given request to the headers
 func (h *Headers) BindRequest(req *Request) error {
 	h.headers.VisitAll(func(key, value []byte) {
 		req.Request.Header.AddBytesKV(key, value)

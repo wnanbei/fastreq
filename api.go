@@ -2,16 +2,19 @@ package fastreq
 
 import jsoniter "github.com/json-iterator/go"
 
-var defaultClient = NewClient(defaultClientConfig)
+var defaultClient = NewClient(&defaultClientConfig)
 
+// SetDefaultClient sets the default client to be used for subsequent requests.
 func SetDefaultClient(client *Client) {
 	defaultClient = client
 }
 
+// Get performs an HTTP GET request to the specified URL with optional request options.
 func Get(url string, opts ...ReqOption) (*Response, error) {
 	return defaultClient.Get(url, opts...)
 }
 
+// Head sends a HEAD request to the specified URL and returns the response.
 func Head(url string, opts ...ReqOption) (*Response, error) {
 	return defaultClient.Head(url, opts...)
 }
@@ -60,10 +63,12 @@ func SetEnvHTTPProxy() {
 	defaultClient.SetEnvHTTPProxy()
 }
 
+// SetOAuth1 sets the OAuth1 token for the default client.
 func SetOauth1(o *Oauth1) {
 	defaultClient.SetOauth1(o)
 }
 
+// SetDebugLevel sets the debug output level for the default client.
 func SetDebugLevel(lvl DebugLevel) {
 	defaultClient.SetDebugLevel(lvl)
 }
@@ -71,14 +76,14 @@ func SetDebugLevel(lvl DebugLevel) {
 var jsonMarshal = jsoniter.ConfigCompatibleWithStandardLibrary.Marshal
 var jsonUnmarshal = jsoniter.ConfigCompatibleWithStandardLibrary.Unmarshal
 
-// SetJsonMarshal can set json marshal function.
-// Default Marshal is github.com/json-iterator/go
-func SetJsonMarshal(f func(any) ([]byte, error)) {
-	jsonMarshal = f
+// SetJsonMarshal sets the JSON marshal function.
+// By default, github.com/json-iterator/go is used.
+func SetJsonMarshal(marshalFunc func(any) ([]byte, error)) {
+	jsonMarshal = marshalFunc
 }
 
-// SetJsonUnmarshal can set json unmarshal function.
-// Default Unmarshal is github.com/json-iterator/go
-func SetJsonUnmarshal(f func([]byte, any) error) {
-	jsonUnmarshal = f
+// SetJSONUnmarshal sets the JSON unmarshal function.
+// The default unmarshal is from the github.com/json-iterator/go package.
+func SetJsonUnmarshal(unmarshalFunc func([]byte, any) error) {
+	jsonUnmarshal = unmarshalFunc
 }

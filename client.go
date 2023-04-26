@@ -9,7 +9,7 @@ import (
 	"github.com/valyala/fasthttp/fasthttpproxy"
 )
 
-var defaultClientConfig = &ClientConfig{
+var defaultClientConfig = ClientConfig{
 	Timeout:           time.Second * 30,
 	DebugLevel:        DebugClose,
 	MaxRedirectsCount: 10,
@@ -31,7 +31,6 @@ type ClientConfig struct {
 	DefaultUserAgent string
 }
 
-// Client ...
 type Client struct {
 	*fasthttp.Client
 	defaultUserAgent  []byte
@@ -42,14 +41,19 @@ type Client struct {
 	middlewares       []Middleware
 }
 
-// NewClient ...
+// NewClient creates a new instance of a Client.
+// If no configuration is provided, the default configuration is used.
 func NewClient(config ...*ClientConfig) *Client {
-	realConfig := defaultClientConfig // if config is empty, use default client config
+	// Use the default client config if no config is provided
+	var realConfig *ClientConfig
 	if len(config) > 0 {
 		realConfig = config[0]
+	} else {
+		realConfig = &defaultClientConfig
 	}
 
-	return &Client{
+	// Create a new fasthttp client with the provided config
+	client := &Client{
 		Client: &fasthttp.Client{
 			Name:                          "",
 			NoDefaultUserAgentHeader:      false,
@@ -78,6 +82,8 @@ func NewClient(config ...*ClientConfig) *Client {
 		maxRedirectsCount: realConfig.MaxRedirectsCount,
 		defaultUserAgent:  unsafeS2B(realConfig.DefaultUserAgent),
 	}
+
+	return client
 }
 
 func (c *Client) Get(url string, opts ...ReqOption) (*Response, error) {
@@ -135,28 +141,35 @@ func (c *Client) DownloadFile(req *Request, path, filename string) error {
 	return nil
 }
 
+// Do execute an HTTP request with optional request options
 func (c *Client) Do(req *Request, opts ...ReqOption) (*Response, error) {
-	for _, opt := range opts {
-		if err := opt.BindRequest(req); err != nil {
+	// apply all request options
+	for _, o := range opts {
+		if err := o.BindRequest(req); err != nil {
 			return nil, err
 		}
-		if opt.isAutoRelease() {
-			Release(opt)
+		if o.isAutoRelease() {
+			Release(o)
 		}
 	}
 
+	// set default user agent if none is provided
 	if len(req.Header.UserAgent()) == 0 {
 		req.Header.SetUserAgentBytes(c.defaultUserAgent)
 	}
+
+	// create a context object with the request and client info
 	ctx := NewCtx()
 	ctx.Request = req
 	ctx.client = c
 
+	// apply the first middleware function if there are any
 	if len(c.middlewares) > 0 {
 		if err := c.middlewares[0](ctx); err != nil {
 			return nil, err
 		}
 	} else {
+		// execute the request
 		if err := do(ctx); err != nil {
 			return nil, err
 		}
