@@ -17,7 +17,7 @@ import (
 type Response struct {
 	*fasthttp.Response
 	Request *fasthttp.Request
-	Dom     *goquery.Document
+	dom     *goquery.Document
 }
 
 func NewResponse() *Response {
@@ -55,15 +55,19 @@ func (r *Response) JsonGetPartOf(path string, v interface{}) error {
 	return jsonUnmarshal(unsafeS2B(part.Raw), v)
 }
 
-func (r *Response) BuildDom() error {
-	if r.Dom == nil {
+// Dom returns a parsed HTML document from the response body.
+// If the response body is not a valid HTML document, an error is returned.
+// github.com/PuerkitoBio/goquery is used to parse the HTML document.
+func (r *Response) Dom() (*goquery.Document, error) {
+	if r.dom == nil {
 		doc, err := goquery.NewDocumentFromReader(bytes.NewReader(r.Body()))
 		if err != nil {
-			return err
+			return nil, err
 		}
-		r.Dom = doc
+		r.dom = doc
 	}
-	return nil
+
+	return r.dom, nil
 }
 
 func (r *Response) Copy() *Response {
