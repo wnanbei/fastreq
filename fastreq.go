@@ -54,9 +54,11 @@ const (
 const debugLimit = 10000
 
 type Releaser interface {
+	// Releases any resources
 	Release()
 }
 
+// Releases any resources
 func Release(releasers ...Releaser) {
 	for _, r := range releasers {
 		r.Release()

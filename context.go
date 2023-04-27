@@ -7,7 +7,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-// Ctx represents the Context which hold the HTTP request and response.
+// Ctx represents the Context which holds the HTTP request and response.
 type Ctx struct {
 	Request         *Request
 	Response        *Response

@@ -20,6 +20,8 @@ type Oauth1 struct {
 	AccessSecret   string
 }
 
+// GenHeader generates an OAuth1 header based on a given Request.
+// It returns the header as a byte array.
 func (o Oauth1) GenHeader(req *Request) []byte {
 	args := fasthttp.AcquireArgs()
 
@@ -38,6 +40,7 @@ func (o Oauth1) GenHeader(req *Request) []byte {
 	return o.header(args, signature)
 }
 
+// signature Generates an encoded signature for an OAuth1 request.
 func (o Oauth1) signature(req *Request, args *fasthttp.Args) []byte {
 	args.Sort(bytes.Compare)
 	queryString := args.String()

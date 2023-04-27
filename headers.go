@@ -31,7 +31,7 @@ func NewHeaders(kv ...string) *Headers {
 	return h
 }
 
-// BindRequest binds the given request to the headers
+// BindRequest binds the headers to the given request
 func (h *Headers) BindRequest(req *Request) error {
 	h.headers.VisitAll(func(key, value []byte) {
 		req.Request.Header.AddBytesKV(key, value)
@@ -39,16 +39,21 @@ func (h *Headers) BindRequest(req *Request) error {
 	return nil
 }
 
+// Release frees the resources held by header
 func (h *Headers) Release() {
 	h.headers.Reset()
 	h.notAutoRelease = false
 	headersPool.Put(h)
 }
 
+// AutoRelease sets whether headers should be automatically released when the
+// associated object is destroyed.
 func (h *Headers) AutoRelease(auto bool) {
 	h.notAutoRelease = !auto
 }
 
+// isAutoRelease returns true if the Headers instance is set to auto-release.
+// In other words, it returns true if the `notAutoRelease` field is false.
 func (h *Headers) isAutoRelease() bool {
 	return !h.notAutoRelease
 }
